@@ -1,4 +1,3 @@
-
 enum ShiftType {
   day(0.0), // 7 AM - 7 PM - No differential (base pay)
   night(0.20); // 7 PM - 7 AM - 20% differential for disrupted sleep
@@ -8,19 +7,17 @@ enum ShiftType {
 }
 
 abstract class Staff {
-  final String id;
-  final String firstName;
-  final String lastName;
-  final String email;
-  final String phoneNumber;
-  final DateTime dateOfBirth;
-  final DateTime hireDate;
-  final int pastYearsOfExperience;
-  final String department;
-  final ShiftType currentShift;
-  final String licenseNumber;
+  String id;
+  String firstName;
+  String lastName;
+  String email;
+  ShiftType currentShift;
+  String phoneNumber;
+  DateTime dateOfBirth;
+  DateTime hireDate;
+  int pastYearsOfExperience;
+  String department;
   double _salary;
-  bool _isActive;
 
   Staff({
     required this.id,
@@ -31,22 +28,15 @@ abstract class Staff {
     required this.dateOfBirth,
     required this.pastYearsOfExperience,
     required this.hireDate,
-    required this.department,
     required this.currentShift,
-    required this.licenseNumber,
+    required this.department,
     required double salary,
-    bool isActive = true,
-  })  : _salary = salary,
-        _isActive = isActive;
+  }) : _salary = salary;
 
-  // Abstract methods - must be implemented by subclasses
   String getRole();
-  String getResponsibilities();
   double computeSalary();
 
   double get salary => _salary;
-
-  bool get isActive => _isActive;
 
   String get fullName => '$firstName $lastName';
 
@@ -72,26 +62,12 @@ abstract class Staff {
 
   int get yearsOfExperience => yearsOfService + pastYearsOfExperience;
 
-  // Setters with validation
   set salary(double value) {
     if (value < 0) {
       throw ArgumentError('Salary cannot be negative');
     }
     _salary = value;
   }
-
-  set isActive(bool value) {
-    _isActive = value;
-  }
-
-  void activate() {
-    _isActive = true;
-  }
-
-  void deactivate() {
-    _isActive = false;
-  }
-
 
   @override
   String toString() {
@@ -102,12 +78,11 @@ abstract class Staff {
     Email: $email
     Phone: $phoneNumber
     Department: $department
-    Year of Expereience: $pastYearsOfExperience
+    Years of Experience: $pastYearsOfExperience
     Age: $age years
+    Shift: ${currentShift.toString().split('.').last}
     Years of Service: $yearsOfService years in the hospital
     Salary: \$${salary.toStringAsFixed(2)}
-    License Number: $licenseNumber
-    Status: ${isActive ? 'Active' : 'Inactive'}
     ''';
   }
 }

@@ -1,6 +1,5 @@
 import 'staff.dart';
 
-/// Enum for medical specializations with salary multipliers
 enum Specialization {
   generalPractice(1.00), // $5,000 - Baseline general outpatient care
   pediatrics(1.05), // $5,250 - Slightly higher; specialized in child health
@@ -19,13 +18,12 @@ enum Specialization {
   const Specialization(this.salaryMultiplier);
 }
 
-/// Doctor class extending Staff
 class Doctor extends Staff {
   final Specialization specialization;
-  final List<String> _certifications;
-  final List<String> _assignedPatients;
-  int _consultationsThisMonth;
-  double _patientRating;
+  final List<String> certifications;
+  final List<String> assignedPatients;
+  int consultationsThisMonth;
+  double patientRating;
 
   Doctor({
     required super.id,
@@ -37,118 +35,82 @@ class Doctor extends Staff {
     required super.hireDate,
     required super.pastYearsOfExperience,
     required super.department,
-    required super.licenseNumber,
     super.salary = 5000,
     required this.specialization,
     required super.currentShift,
-    List<String> certifications = const [],
-    List<String> assignedPatients = const [],
-    int consultationsThisMonth = 0,
-    double patientRating = 0.0,
-    super.isActive,
-  })  : _certifications = List.from(certifications),
-        _assignedPatients = List.from(assignedPatients),
-        _consultationsThisMonth = consultationsThisMonth,
-        _patientRating = patientRating;
+    List<String>? certifications,
+    List<String>? assignedPatients,
+    this.consultationsThisMonth = 0,
+    this.patientRating = 0.0,
+  })  : certifications = certifications ?? [],
+        assignedPatients = assignedPatients ?? [];
 
-  // Getters
-  List<String> get certifications => List.unmodifiable(_certifications);
-  List<String> get assignedPatients => List.unmodifiable(_assignedPatients);
-  int get consultationsThisMonth => _consultationsThisMonth;
-  double get patientRating => _patientRating;
-  int get totalPatients => _assignedPatients.length;
-
-
-  /// Get experience bonus based on years of service
   double get experienceBonus => yearsOfExperience * 300;
 
-  /// Get consultation bonus
-  double get consultationBonus => _consultationsThisMonth * 50.0;
+  double get consultationBonus => consultationsThisMonth * 50.0;
 
-  /// Get patient rating bonus
-  double get ratingBonus => _patientRating * 100.0;
+  double get ratingBonus => patientRating * 100.0;
 
   @override
   String getRole() => 'Doctor';
 
   @override
-  String getResponsibilities() {
-    return '''
-    - Diagnose and treat patients in ${_getSpecializationName()}
-    - Perform medical examinations and consultations
-    - Prescribe medications and treatments
-    - Maintain accurate medical records
-    - Consult with other medical professionals
-    - Current patients under care: $totalPatients
-    ''';
-  }
-
-  @override
   double computeSalary() {
-    // Start with base salary
     double total = salary;
 
-    // Add experience bonus
     total += experienceBonus;
 
-    // Apply specialization multiplier
     total *= specialization.salaryMultiplier;
 
-    // Add shift differential
     total += total * currentShift.bonus;
-    // Add performance bonuses
     total += consultationBonus + ratingBonus;
 
     return total;
   }
 
-  // Doctor-specific methods
   void addCertification(String certification) {
-    if (!_certifications.contains(certification)) {
-      _certifications.add(certification);
+    if (!certifications.contains(certification)) {
+      certifications.add(certification);
     }
   }
 
   void removeCertification(String certification) {
-    _certifications.remove(certification);
+    certifications.remove(certification);
   }
 
   void assignPatient(String patientId) {
-    if (!_assignedPatients.contains(patientId)) {
-      _assignedPatients.add(patientId);
+    if (!assignedPatients.contains(patientId)) {
+      assignedPatients.add(patientId);
     }
   }
 
   void removePatient(String patientId) {
-    _assignedPatients.remove(patientId);
+    assignedPatients.remove(patientId);
   }
 
   void recordConsultation() {
-    _consultationsThisMonth++;
+    consultationsThisMonth++;
   }
 
   void resetMonthlyConsultations() {
-    _consultationsThisMonth = 0;
+    consultationsThisMonth = 0;
   }
 
   void updateRating(double newRating) {
     if (newRating < 0.0 || newRating > 5.0) {
       throw ArgumentError('Rating must be between 0.0 and 5.0');
     }
-    _patientRating = newRating;
+    patientRating = newRating;
   }
 
   String _getSpecializationName() {
     return specialization.toString().split('.').last;
   }
 
-  bool canAcceptMorePatients({int maxPatients = 50}) {
-    return totalPatients < maxPatients && isActive;
-  }
 
   @override
   String toString() {
-    // Calculate components
+
     final baseWithExp = salary + experienceBonus;
     final specializationBonusAmount = baseWithExp * (specialization.salaryMultiplier - 1.0);
     final withSpecialization = baseWithExp * specialization.salaryMultiplier;
@@ -159,10 +121,10 @@ class Doctor extends Staff {
 ${super.toString()}
     Specialization: ${_getSpecializationName()} (${((specialization.salaryMultiplier - 1.0) * 100).toStringAsFixed(1)}% adjustment)
     Current Shift: ${currentShift.name} (${(currentShift.bonus * 100).toStringAsFixed(1)}% differential)
-    Certifications: ${_certifications.isEmpty ? 'None' : _certifications.join(', ')}
-    Total Patients: $totalPatients
-    Consultations This Month: $_consultationsThisMonth
-    Patient Rating: ${_patientRating.toStringAsFixed(1)}/5.0
+    Certifications: ${certifications.isEmpty ? 'None' : certifications.join(', ')}
+    Total Patients: ${assignedPatients.length}
+    Consultations This Month: $consultationsThisMonth
+    Patient Rating: ${patientRating.toStringAsFixed(1)}/5.0
     Years of Experience: $yearsOfExperience
 
     === SALARY BREAKDOWN ===
@@ -170,8 +132,8 @@ ${super.toString()}
     Experience Bonus ($yearsOfExperience years): \$${experienceBonus.toStringAsFixed(2)}
     Specialization Bonus:     \$${specializationBonusAmount.toStringAsFixed(2)}
     Shift Differential (${currentShift.name}): \$${shiftDifferentialAmount.toStringAsFixed(2)}
-    Consultation Bonus ($_consultationsThisMonth consultations): \$${consultationBonus.toStringAsFixed(2)}
-    Patient Rating Bonus (${_patientRating.toStringAsFixed(1)}/5.0): \$${ratingBonus.toStringAsFixed(2)}
+    Consultation Bonus ($consultationsThisMonth consultations): \$${consultationBonus.toStringAsFixed(2)}
+    Patient Rating Bonus (${patientRating.toStringAsFixed(1)}/5.0): \$${ratingBonus.toStringAsFixed(2)}
     -----------------------------------
     Total Monthly Bonus:      \$${totalBonus.toStringAsFixed(2)}
     Total Pay:                \$${computeSalary().toStringAsFixed(2)}

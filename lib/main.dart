@@ -1,25 +1,21 @@
 import 'dart:io';
-import 'package:hospital_management_system/domain/staff.dart';
 
-import 'data/nurse_repository.dart';
-import 'data/doctor_repository.dart';
-import 'data/administrative_staff_repository.dart';
+import 'data/repository/nurse_repository.dart';
+import 'data/repository/doctor_repository.dart';
+import 'data/repository/administrative_staff_repository.dart';
 import 'ui/hospital_console.dart';
 import 'domain/nurse.dart';
-
-/// Main entry point for the Hospital Management System
-/// Demonstrates layered architecture: Domain -> Data -> UI
+import './domain/staff.dart';
 void main() {
   // Get the directory where main.dart is located
   final scriptDir = File(Platform.script.toFilePath()).parent.path;
   
   // Paths to staff data files (relative to main.dart location)
-  String nursesFilePath = "$scriptDir/data/nurses_data.json";
-  String doctorsFilePath = "$scriptDir/data/doctors_data.json";
-  String adminFilePath = "$scriptDir/data/admin_staff_data.json";
+  String nursesFilePath = "$scriptDir/data/asset/nurses_data.json";
+  String doctorsFilePath = "$scriptDir/data/asset/doctors_data.json";
+  String adminFilePath = "$scriptDir/data/asset/admin_staff_data.json";
 
-  // Create a sample nurse to demonstrate the salary calculation
-  final sampleNurse = Nurse(
+   final sampleNurse = Nurse(
     id: 'N999',
     firstName: 'Jane',
     lastName: 'Doe',
@@ -30,7 +26,6 @@ void main() {
     pastYearsOfExperience: 0,
     department: 'Emergency',
     specialization: NurseSpecialization.emergency,
-    licenseNumber: 'RN-11111',
     currentShift: ShiftType.night,
     shiftsThisMonth: 22,
     performanceRating: 4.0,
