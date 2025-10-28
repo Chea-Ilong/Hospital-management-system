@@ -1,0 +1,85 @@
+{
+  "administrativeStaff": [
+    {
+      "id": "A001",
+      "firstName": "Lisa",
+      "lastName": "Anderson",
+      "email": "lisa.anderson@hospital.com",
+      "phoneNumber": "+1-555-0301",
+      "dateOfBirth": "1983-06-10T00:00:00.000",
+      "hireDate": "2013-04-01T00:00:00.000",
+      "pastYearsOfExperience": 5,
+      "department": "Administration",
+      "salary": 4800.00,
+      "licenseNumber": "ADM-98765",
+      "isActive": true,
+      "position": "facilityManager",
+      "officeLocation": "Building A, Floor 2",
+      "responsibilities": [
+        "Manage office operations",
+        "Coordinate staff schedules",
+        "Handle patient inquiries"
+      ],
+      "completedProjects": [
+        "Office reorganization 2024",
+        "New filing system implementation"
+      ],
+      "tasksCompletedThisMonth": 35,
+      "efficiencyRating": 4.3
+    },
+    {
+      "id": "A002",
+      "firstName": "Mark",
+      "lastName": "Thompson",
+      "email": "mark.thompson@hospital.com",
+      "phoneNumber": "+1-555-0302",
+      "dateOfBirth": "1990-12-05T00:00:00.000",
+      "hireDate": "2017-08-15T00:00:00.000",
+      "pastYearsOfExperience": 3,
+      "department": "Records",
+      "salary": 3900.00,
+      "licenseNumber": "ADM-98766",
+      "isActive": true,
+      "position": "medicalRecordsClerk",
+      "officeLocation": "Building B, Floor 1",
+      "responsibilities": [
+        "Maintain medical records",
+        "Process record requests",
+        "Ensure HIPAA compliance"
+      ],
+      "completedProjects": [
+        "Digital records migration 2023"
+      ],
+      "tasksCompletedThisMonth": 42,
+      "efficiencyRating": 4.5
+    },
+    {
+      "id": "A003",
+      "firstName": "Patricia",
+      "lastName": "Garcia",
+      "email": "patricia.garcia@hospital.com",
+      "phoneNumber": "+1-555-0303",
+      "dateOfBirth": "1987-04-18T00:00:00.000",
+      "hireDate": "2014-11-10T00:00:00.000",
+      "pastYearsOfExperience": 6,
+      "department": "Finance",
+      "salary": 5200.00,
+      "licenseNumber": "ADM-98767",
+      "isActive": true,
+      "position": "financeOfficer",
+      "officeLocation": "Building A, Floor 3",
+      "responsibilities": [
+        "Process payroll",
+        "Manage accounts",
+        "Prepare financial reports"
+      ],
+      "completedProjects": [
+        "Budget audit 2024",
+        "New accounting software implementation"
+      ],
+      "tasksCompletedThisMonth": 28,
+      "efficiencyRating": 4.7
+    }
+  ],
+  "lastUpdated": "2025-10-27T10:00:00.000"
+}

@@ -1,0 +1,62 @@
+{
+  "nurses": [
+    {
+      "id": "N001",
+      "firstName": "Sarah",
+      "lastName": "Johnson",
+      "email": "sarah.johnson@hospital.com",
+      "phoneNumber": "+1-555-0101",
+      "dateOfBirth": "1988-03-15T00:00:00.000",
+      "hireDate": "2015-06-01T00:00:00.000",
+      "pastYearsOfExperience": 3,
+      "department": "Emergency",
+      "licenseNumber": "RN-12345",
+      "isActive": true,
+      "specialization": "emergency",
+      "currentShift": "night",
+      "assignedPatients": ["P001", "P002", "P003"],
+      "certifications": ["BLS", "ACLS", "PALS"],
+      "shiftsThisMonth": 20,
+      "performanceRating": 4.5
+    },
+    {
+      "id": "N002",
+      "firstName": "Emily",
+      "lastName": "Davis",
+      "email": "emily.davis@hospital.com",
+      "phoneNumber": "+1-555-0102",
+      "dateOfBirth": "1992-07-22T00:00:00.000",
+      "hireDate": "2018-03-15T00:00:00.000",
+      "pastYearsOfExperience": 2,
+      "department": "Pediatrics",
+      "licenseNumber": "RN-12346",
+      "isActive": true,
+      "specialization": "pediatric",
+      "currentShift": "day",
+      "assignedPatients": ["P010", "P011"],
+      "certifications": ["BLS", "PALS"],
+      "shiftsThisMonth": 22,
+      "performanceRating": 4.2
+    },
+    {
+      "id": "N003",
+      "firstName": "Michael",
+      "lastName": "Brown",
+      "email": "michael.brown@hospital.com",
+      "phoneNumber": "+1-555-0103",
+      "dateOfBirth": "1985-11-08T00:00:00.000",
+      "hireDate": "2012-09-01T00:00:00.000",
+      "pastYearsOfExperience": 5,
+      "department": "ICU",
+      "licenseNumber": "RN-12347",
+      "isActive": true,
+      "specialization": "critical",
+      "currentShift": "night",
+      "assignedPatients": ["P020", "P021", "P022", "P023"],
+      "certifications": ["BLS", "ACLS", "CCRN"],
+      "shiftsThisMonth": 18,
+      "performanceRating": 4.8
+    }
+  ],
+  "lastUpdated": "2025-10-27T10:00:00.000"
+}
