@@ -1,11 +1,32 @@
 enum ShiftType {
-  day(0.0), // 7 AM - 7 PM - No differential (base pay)
-  night(0.20); // 7 PM - 7 AM - 20% differential for disrupted sleep
+  DAY(0.0), // 7 AM - 7 PM - No differential (base pay)
+  NIGHT(0.20); // 7 PM - 7 AM - 20% differential for disrupted sleep
 
   final double bonus;
   const ShiftType(this.bonus);
 }
 
+enum StaffRole {
+  DOCTOR,
+  NURSE,
+  ADMINISTRATIVE
+}
+
+enum StaffDepartment {
+  EMERGENCY_DEPARTMENT,
+  INTENSIVE_CARE_UNIT,
+  PEDIATRICS,
+  CARDIOLOGY,
+  NEUROLOGY,
+  ORTHOPEDICS,
+  SURGERY,
+  OPERATING_ROOM,
+  HUMAN_RESOURCES,
+  FINANCE,
+  IT_DEPARTMENT,
+  RECEPTION,
+  ADMINISTRATION
+}
 abstract class Staff {
   String id;
   String firstName;
@@ -16,8 +37,9 @@ abstract class Staff {
   DateTime dateOfBirth;
   DateTime hireDate;
   int pastYearsOfExperience;
-  String department;
-  double _salary;
+  StaffDepartment department;
+  double salary;
+  StaffRole role;
 
   Staff({
     required this.id,
@@ -30,58 +52,42 @@ abstract class Staff {
     required this.hireDate,
     required this.currentShift,
     required this.department,
-    required double salary,
-  }) : _salary = salary;
+    required this.salary,
+    required this.role,
+  });
 
-  String getRole();
+  double get getExperienceBonus;
   double computeSalary();
 
-  double get salary => _salary;
+  String get getRoleName => role.name;
+  String get getFullName => '$firstName $lastName';
+  int get getAge => yearsBetween(dateOfBirth, DateTime.now());
+  int get getYearsOfService => yearsBetween(hireDate, DateTime.now());
+  int get getYearsOfExperience => getYearsOfService + pastYearsOfExperience;
+  String get getShiftType => currentShift.name;
 
-  String get fullName => '$firstName $lastName';
-
-  int get age {
-    final today = DateTime.now();
-    int age = today.year - dateOfBirth.year;
-    if (today.month < dateOfBirth.month ||
-        (today.month == dateOfBirth.month && today.day < dateOfBirth.day)) {
-      age--;
-    }
-    return age;
-  }
-
-  int get yearsOfService {
-    final today = DateTime.now();
-    int years = today.year - hireDate.year;
-    if (today.month < hireDate.month ||
-        (today.month == hireDate.month && today.day < hireDate.day)) {
+  int yearsBetween(DateTime from, DateTime to) {
+    int years = to.year - from.year;
+    if (to.month < from.month ||
+        (to.month == from.month && to.day < from.day)) {
       years--;
     }
     return years;
-  }
-
-  int get yearsOfExperience => yearsOfService + pastYearsOfExperience;
-
-  set salary(double value) {
-    if (value < 0) {
-      throw ArgumentError('Salary cannot be negative');
-    }
-    _salary = value;
   }
 
   @override
   String toString() {
     return '''
     ID: $id
-    Name: $fullName
-    Role: ${getRole()}
+    Name: $getFullName
+    Role: ${getRoleName}
     Email: $email
     Phone: $phoneNumber
-    Department: $department
+    Department: ${department.toString().split('.').last}
     Years of Experience: $pastYearsOfExperience
-    Age: $age years
+    Age: $getAge years
     Shift: ${currentShift.toString().split('.').last}
-    Years of Service: $yearsOfService years in the hospital
+    Years of Service: $getYearsOfService years in the hospital
     Salary: \$${salary.toStringAsFixed(2)}
     ''';
   }

@@ -5,36 +5,35 @@ import '/domain/staff.dart';
 
 class AdministrativeStaffRepository {
   final String filePath;
-  List<AdministrativeStaff> _adminStaff = [];
 
   AdministrativeStaffRepository(this.filePath);
 
-  /// Load administrative staff from JSON file
-  void loadAdministrativeStaff() {
+  /// Load all administrative staff from JSON file
+  List<AdministrativeStaff> loadAllAdministrativeStaff() {
     try {
       final file = File(filePath);
       if (!file.existsSync()) {
         print('Administrative staff data file not found. Creating new file...');
-        _adminStaff = [];
-        return;
+        return [];
       }
 
       final jsonString = file.readAsStringSync();
       final Map<String, dynamic> data = jsonDecode(jsonString);
 
-      _adminStaff = (data['administrativeStaff'] as List)
+      final adminStaff = (data['administrativeStaff'] as List)
           .map((json) => _administrativeStaffFromJson(json))
           .toList();
 
-      print('Successfully loaded ${_adminStaff.length} administrative staff');
+      print('Successfully loaded ${adminStaff.length} administrative staff');
+      return adminStaff;
     } catch (e) {
       print('Error loading administrative staff data: $e');
-      _adminStaff = [];
+      return [];
     }
   }
 
-  /// Save administrative staff to JSON file
-  void saveAdministrativeStaff() {
+  /// Save all administrative staff to JSON file
+  void saveAllAdministrativeStaff(List<AdministrativeStaff> adminStaff) {
     try {
       final file = File(filePath);
 
@@ -43,7 +42,7 @@ class AdministrativeStaffRepository {
       }
 
       final data = {
-        'administrativeStaff': _adminStaff
+        'administrativeStaff': adminStaff
             .map((staff) => _administrativeStaffToJson(staff))
             .toList(),
         'lastUpdated': DateTime.now().toIso8601String(),
@@ -52,7 +51,7 @@ class AdministrativeStaffRepository {
       final jsonString = JsonEncoder.withIndent('  ').convert(data);
       file.writeAsStringSync(jsonString);
 
-      print('Successfully saved ${_adminStaff.length} administrative staff');
+      print('Successfully saved ${adminStaff.length} administrative staff');
     } catch (e) {
       print('Error saving administrative staff data: $e');
     }
@@ -69,7 +68,7 @@ class AdministrativeStaffRepository {
       'dateOfBirth': admin.dateOfBirth.toIso8601String(),
       'hireDate': admin.hireDate.toIso8601String(),
       'pastYearsOfExperience': admin.pastYearsOfExperience,
-      'department': admin.department,
+      'department': admin.department.toString().split('.').last,
       'salary': admin.salary,
       'currentShift': admin.currentShift.toString().split('.').last,
       'position': admin.position.toString().split('.').last,
@@ -86,69 +85,24 @@ class AdministrativeStaffRepository {
       phoneNumber: json['phoneNumber'],
       dateOfBirth: DateTime.parse(json['dateOfBirth']),
       hireDate: DateTime.parse(json['hireDate']),
-      department: json['department'],
+      department: StaffDepartment.values.firstWhere(
+        (e) =>
+            e.toString().split('.').last.toUpperCase() ==
+            json['department'].toString().replaceAll(' ', '_').toUpperCase(),
+      ),
       pastYearsOfExperience: json['pastYearsOfExperience'] ?? 0,
       salary: (json['salary'] ?? 3000).toDouble(),
-        currentShift: ShiftType.values.firstWhere(
-          (e) => e.toString().split('.').last == json['currentShift'],
-          orElse: () => ShiftType.day,
-        ),
+      currentShift: ShiftType.values.firstWhere(
+        (e) =>
+            e.toString().split('.').last.toUpperCase() ==
+            json['currentShift'].toString().toUpperCase(),
+        orElse: () => ShiftType.DAY,
+      ),
       position: AdministrativePosition.values.firstWhere(
-        (e) => e.toString().split('.').last == json['position'],
+        (e) =>
+            e.toString().split('.').last.toUpperCase() ==
+            json['position'].toString().toUpperCase(),
       ),
     );
-  }
-
-  /// Get all administrative staff
-  List<AdministrativeStaff> getAllAdministrativeStaff() =>
-      List.unmodifiable(_adminStaff);
-
-  /// Search administrative staff by name
-  List<AdministrativeStaff> searchAdministrativeStaffByName(String query) {
-    final lowerQuery = query.toLowerCase();
-    return _adminStaff
-        .where((s) =>
-            s.firstName.toLowerCase().contains(lowerQuery) ||
-            s.lastName.toLowerCase().contains(lowerQuery))
-        .toList();
-  }
-
-  /// Get administrative staff by ID
-  AdministrativeStaff? getAdministrativeStaffById(String id) {
-    try {
-      return _adminStaff.firstWhere((staff) => staff.id == id);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Add new administrative staff
-  void addAdministrativeStaff(AdministrativeStaff staff) {
-    if (getAdministrativeStaffById(staff.id) != null) {
-      throw ArgumentError(
-          'Administrative staff with ID ${staff.id} already exists');
-    }
-    _adminStaff.add(staff);
-    saveAdministrativeStaff();
-  }
-
-  /// Update administrative staff
-  void updateAdministrativeStaff(AdministrativeStaff staff) {
-    final index = _adminStaff.indexWhere((s) => s.id == staff.id);
-    if (index == -1) {
-      throw ArgumentError('Administrative staff with ID ${staff.id} not found');
-    }
-    _adminStaff[index] = staff;
-    saveAdministrativeStaff();
-  }
-
-  /// Remove administrative staff
-  void removeAdministrativeStaff(String id) {
-    final initialLength = _adminStaff.length;
-    _adminStaff.removeWhere((staff) => staff.id == id);
-    if (_adminStaff.length == initialLength) {
-      throw ArgumentError('Administrative staff with ID $id not found');
-    }
-    saveAdministrativeStaff();
   }
 }

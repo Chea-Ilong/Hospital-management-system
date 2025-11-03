@@ -2,14 +2,14 @@ import 'staff.dart';
 
 /// Enum for administrative positions
 enum AdministrativePosition {
-  systemsAdministrator,
-  hrManager,
-  receptionist;
+  HR,
+  RECEPTIONIST,
+  SYSTEM_ADMIN,
 }
 
 /// Administrative Staff class extending Staff
 class AdministrativeStaff extends Staff {
-  final AdministrativePosition position;
+  AdministrativePosition position;
 
   AdministrativeStaff({
     required super.id,
@@ -22,33 +22,28 @@ class AdministrativeStaff extends Staff {
     required super.hireDate,
     required super.department,
     required super.salary,
-    super.currentShift = ShiftType.day,
+    super.currentShift = ShiftType.DAY,
     required this.position,
-  });
-
-  double get experienceBonus => yearsOfExperience * 100.0;
+  }) : super(role: StaffRole.ADMINISTRATIVE);
 
   @override
-  String getRole() => 'Administrative Staff';
+  double get getExperienceBonus => getYearsOfExperience * 100.0;
 
   @override
   double computeSalary() {
+    // Admin staff work day shift only, no shift differential
     double total = salary;
-    total += experienceBonus;
+    total += getExperienceBonus;
     return total;
-  }
-
-  String _getPositionName() {
-    return position.toString().split('.').last;
   }
 
   @override
   String toString() {
-
     return '''
 ${super.toString()}
-    Position: ${_getPositionName()}
-    Experience Bonus: \$${experienceBonus.toStringAsFixed(2)}
-    Total Pay:                \$${computeSalary().toStringAsFixed(2)}
-    ''';  }
+    Position: ${position.toString().split('.').last}
+    Experience Bonus: \$${getExperienceBonus.toStringAsFixed(2)}
+    Total Pay:  \$${computeSalary().toStringAsFixed(2)}
+    ''';
+  }
 }

@@ -9,10 +9,10 @@
       "dateOfBirth": "1988-03-15T00:00:00.000",
       "hireDate": "2015-06-01T00:00:00.000",
       "pastYearsOfExperience": 3,
-      "department": "Emergency",
+      "department": "EMERGENCY_DEPARTMENT",
       "salary": 4000.0,
-      "specialization": "emergency",
-      "currentShift": "night",
+      "specialization": "EMERGENCY",
+      "currentShift": "NIGHT",
       "assignedPatients": [
         "P001",
         "P002",
@@ -23,8 +23,7 @@
         "ACLS",
         "PALS"
       ],
-      "shiftsThisMonth": 20,
-      "performanceRating": 4.5
+      "shiftsThisMonth": 20
     },
     {
       "id": "N002",
@@ -35,10 +34,10 @@
       "dateOfBirth": "1992-07-22T00:00:00.000",
       "hireDate": "2018-03-15T00:00:00.000",
       "pastYearsOfExperience": 2,
-      "department": "Pediatrics",
+      "department": "PEDIATRICS",
       "salary": 4000.0,
-      "specialization": "pediatric",
-      "currentShift": "day",
+      "specialization": "PEDIATRIC",
+      "currentShift": "DAY",
       "assignedPatients": [
         "P010",
         "P011"
@@ -47,9 +46,9 @@
         "BLS",
         "PALS"
       ],
-      "shiftsThisMonth": 22,
-      "performanceRating": 4.2
+      "shiftsThisMonth": 22
     },
+
     {
       "id": "N003",
       "firstName": "Michael",
@@ -59,10 +58,10 @@
       "dateOfBirth": "1985-11-08T00:00:00.000",
       "hireDate": "2012-09-01T00:00:00.000",
       "pastYearsOfExperience": 5,
-      "department": "ICU",
+      "department": "INTENSIVE_CARE_UNIT",
       "salary": 4000.0,
-      "specialization": "critical",
-      "currentShift": "night",
+      "specialization": "CRITICAL",
+      "currentShift": "NIGHT",
       "assignedPatients": [
         "P020",
         "P021",
@@ -74,8 +73,7 @@
         "ACLS",
         "CCRN"
       ],
-      "shiftsThisMonth": 18,
-      "performanceRating": 4.8
+      "shiftsThisMonth": 18
     }
   ],
   "lastUpdated": "2025-10-28T21:12:49.406066"
