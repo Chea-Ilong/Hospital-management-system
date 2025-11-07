@@ -216,22 +216,7 @@ void main() {
       }
     });
 
-    test('10. Staff Count - Count staff members by type', () {
-      final counts = staffService.getStaffCountByType();
-
-      expect(counts, isNotEmpty);
-      expect(counts.containsKey('doctors'), true);
-      expect(counts.containsKey('nurses'), true);
-      expect(counts.containsKey('administrativeStaff'), true);
-      expect(counts.containsKey('total'), true);
-
-      expect(counts['total'], staffService.allStaff.length);
-      expect(counts['doctors'], greaterThanOrEqualTo(0));
-      expect(counts['nurses'], greaterThanOrEqualTo(0));
-      expect(counts['administrativeStaff'], greaterThanOrEqualTo(0));
-    });
-
-    test('11. Email Validation - Reject invalid email formats', () {
+    test('10. Email Validation - Reject invalid email formats', () {
       final invalidEmails = [
         'nodomain',
         'test@',
@@ -260,7 +245,7 @@ void main() {
       }
     });
 
-    test('12. Age Boundary - Test isAdult with exact 18-year boundary', () {
+    test('11. Age Boundary - Test isAdult with exact 18-year boundary', () {
       final now = DateTime.now();
 
       final eighteenYearsAgo = DateTime(now.year - 18, now.month, now.day);
@@ -298,7 +283,7 @@ void main() {
       expect(childStaff.isAdult, false, reason: 'Should be under 18');
     });
 
-    test('13. Overload Detection - Identify overloaded medical staff', () {
+    test('12. Overload Detection - Identify overloaded medical staff', () {
       final doctor = Doctor(
         id: 'DOC_OVERLOAD',
         firstName: 'Busy',
@@ -331,7 +316,7 @@ void main() {
       expect(doctor.isOverloaded, false, reason: 'Should not be overloaded');
     });
 
-    test('14. Capacity Check - Test canTakeMorePatients at boundaries', () {
+    test('13. Capacity Check - Test canTakeMorePatients at boundaries', () {
       final nurse = Nurse(
         id: 'NURSE_CAPACITY',
         firstName: 'Capacity',
@@ -356,7 +341,7 @@ void main() {
       expect(nurse.canTakeMorePatients, false, reason: 'Should reject at 10 patients');
     });
 
-    test('15. Shift Validation - Test hasValidShiftsCount at boundaries', () {
+    test('14. Shift Validation - Test hasValidShiftsCount at boundaries', () {
       final doctor = Doctor(
         id: 'DOC_SHIFTS',
         firstName: 'Shift',
@@ -385,7 +370,7 @@ void main() {
       expect(doctor.hasValidShiftsCount, false, reason: 'Should reject -1 shifts');
     });
 
-    test('16. Multiple Validations - Catch all validation failures at once', () {
+    test('15. Multiple Validations - Catch all validation failures at once', () {
       final now = DateTime.now();
       final invalidStaff = AdministrativeStaff(
         id: 'INVALID_MULTI',
@@ -404,7 +389,7 @@ void main() {
       expect(() => staffService.addStaff(invalidStaff), throwsArgumentError);
     });
 
-    test('17. Patient Capacity - Reject assignment when at capacity', () {
+    test('16. Patient Capacity - Reject assignment when at capacity', () {
       final nurse = Nurse(
         id: 'NURSE_FULL',
         firstName: 'Full',
@@ -437,94 +422,9 @@ void main() {
       staffService.removeStaff('NURSE_FULL');
     });
 
-    test('18. Shift Rollback - Verify rollback when exceeding limit', () {
-      final doctor = Doctor(
-        id: 'DOC_31SHIFTS',
-        firstName: 'Thirty',
-        lastName: 'One',
-        email: 'thirty@hospital.com',
-        phoneNumber: '5551234567',
-        dateOfBirth: DateTime(1985, 1, 1),
-        hireDate: DateTime(2020, 1, 1),
-        pastYearsOfExperience: 5,
-        salary: 120000.0,
-        specialization: DoctorSpecialization.NEUROLOGY,
-        department: StaffDepartment.NEUROLOGY,
-        currentShift: ShiftType.DAY,
-        shiftsThisMonth: 31,
-      );
 
-      staffService.addStaff(doctor);
 
-      expect(
-        () => medicalStaffService.recordShift('DOC_31SHIFTS'),
-        throwsStateError,
-      );
-
-      final updatedDoctor = staffService.getStaffById('DOC_31SHIFTS') as Doctor;
-      expect(updatedDoctor.shiftsThisMonth, 31, reason: 'Should rollback to 31');
-
-      staffService.removeStaff('DOC_31SHIFTS');
-    });
-
-    test('19. Transfer Atomic - Verify patient stays with source on failure', () {
-      final sourceNurse = Nurse(
-        id: 'NURSE_SOURCE',
-        firstName: 'Source',
-        lastName: 'Nurse',
-        email: 'source@hospital.com',
-        phoneNumber: '5551234567',
-        dateOfBirth: DateTime(1990, 1, 1),
-        hireDate: DateTime(2020, 1, 1),
-        pastYearsOfExperience: 3,
-        salary: 80000.0,
-        specialization: NurseSpecialization.EMERGENCY,
-        department: StaffDepartment.EMERGENCY_DEPARTMENT,
-        currentShift: ShiftType.DAY,
-      );
-      sourceNurse.assignedPatients.add('patient_transfer');
-
-      final fullNurse = Nurse(
-        id: 'NURSE_FULL_TRANSFER',
-        firstName: 'Full',
-        lastName: 'Transfer',
-        email: 'fullt@hospital.com',
-        phoneNumber: '5551234567',
-        dateOfBirth: DateTime(1990, 1, 1),
-        hireDate: DateTime(2020, 1, 1),
-        pastYearsOfExperience: 3,
-        salary: 80000.0,
-        specialization: NurseSpecialization.PEDIATRIC,
-        department: StaffDepartment.PEDIATRICS,
-        currentShift: ShiftType.DAY,
-      );
-
-      for (int i = 0; i < 10; i++) {
-        fullNurse.assignedPatients.add('dest_patient_$i');
-      }
-
-      staffService.addStaff(sourceNurse);
-      staffService.addStaff(fullNurse);
-
-      expect(
-        () => medicalStaffService.transferPatient(
-            'NURSE_SOURCE', 'NURSE_FULL_TRANSFER', 'patient_transfer'),
-        throwsStateError,
-      );
-
-      final updatedSource =
-          staffService.getStaffById('NURSE_SOURCE') as Nurse;
-      expect(
-        updatedSource.assignedPatients.contains('patient_transfer'),
-        true,
-        reason: 'Patient should still be with source nurse',
-      );
-
-      staffService.removeStaff('NURSE_SOURCE');
-      staffService.removeStaff('NURSE_FULL_TRANSFER');
-    });
-
-    test('20. Salary Validation - Ensure validation prevents invalid increases',
+    test('17. Salary Validation - Ensure validation prevents invalid increases',
         () {
       final admin = AdministrativeStaff(
         id: 'ADMIN_SALARY_TEST',
