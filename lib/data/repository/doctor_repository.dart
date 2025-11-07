@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-import '/domain/doctor.dart';
-import '/domain/staff.dart';
+import '../../domain/doctor.dart';
+import '../../domain/staff.dart';
 
 class DoctorRepository {
   final String filePath;
 
-  DoctorRepository(this.filePath);
+  DoctorRepository([String? customPath])
+      : filePath = customPath ?? 'lib/data/storage/doctors_data.json';
 
   /// Load all doctors from JSON file
   List<Doctor> loadAllDoctors() {
@@ -24,7 +25,6 @@ class DoctorRepository {
           .map((json) => _doctorFromJson(json))
           .toList();
 
-      print('Successfully loaded ${doctors.length} doctors');
       return doctors;
     } catch (e) {
       print('Error loading doctor data: $e');
@@ -48,8 +48,6 @@ class DoctorRepository {
 
       final jsonString = JsonEncoder.withIndent('  ').convert(data);
       file.writeAsStringSync(jsonString);
-
-      print('Successfully saved ${doctors.length} doctors');
     } catch (e) {
       print('Error saving doctor data: $e');
     }
@@ -94,7 +92,7 @@ class DoctorRepository {
       ),
       pastYearsOfExperience: json['pastYearsOfExperience'] ?? 0,
       salary: (json['salary'] ?? 5000).toDouble(),
-      specialization: Specialization.values.firstWhere(
+      specialization: DoctorSpecialization.values.firstWhere(
         (e) =>
             e.toString().split('.').last.toUpperCase() ==
             json['specialization'].toString().toUpperCase(),

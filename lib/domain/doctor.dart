@@ -1,7 +1,7 @@
 import 'staff.dart';
 import 'medical_staff.dart';
 
-enum Specialization {
+enum DoctorSpecialization {
   GENERAL_PRACTICE,
   CARDIOLOGY,
   NEUROLOGY,
@@ -13,7 +13,7 @@ enum Specialization {
 }
 
 class Doctor extends MedicalStaff {
-  final Specialization specialization;
+  final DoctorSpecialization specialization;
   int consultationsThisMonth;
 
   Doctor({

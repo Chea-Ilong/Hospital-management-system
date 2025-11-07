@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-import '/domain/administrative_staff.dart';
-import '/domain/staff.dart';
+import '../../domain/administrative_staff.dart';
+import '../../domain/staff.dart';
 
 class AdministrativeStaffRepository {
   final String filePath;
 
-  AdministrativeStaffRepository(this.filePath);
+  AdministrativeStaffRepository([String? customPath])
+      : filePath = customPath ?? 'lib/data/storage/admin_staff_data.json';
 
   /// Load all administrative staff from JSON file
   List<AdministrativeStaff> loadAllAdministrativeStaff() {
@@ -24,7 +25,6 @@ class AdministrativeStaffRepository {
           .map((json) => _administrativeStaffFromJson(json))
           .toList();
 
-      print('Successfully loaded ${adminStaff.length} administrative staff');
       return adminStaff;
     } catch (e) {
       print('Error loading administrative staff data: $e');
@@ -50,8 +50,6 @@ class AdministrativeStaffRepository {
 
       final jsonString = JsonEncoder.withIndent('  ').convert(data);
       file.writeAsStringSync(jsonString);
-
-      print('Successfully saved ${adminStaff.length} administrative staff');
     } catch (e) {
       print('Error saving administrative staff data: $e');
     }

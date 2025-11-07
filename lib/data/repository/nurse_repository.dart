@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-import '/domain/nurse.dart';
-import '/domain/staff.dart';
+import '../../domain/nurse.dart';
+import '../../domain/staff.dart';
 
 class NurseRepository {
   final String filePath;
 
-  NurseRepository(this.filePath);
+  NurseRepository([String? customPath])
+      : filePath = customPath ?? 'lib/data/storage/nurses_data.json';
 
   /// Load all nurses from JSON file
   List<Nurse> loadAllNurses() {
@@ -23,7 +24,6 @@ class NurseRepository {
       final nurses =
           (data['nurses'] as List).map((json) => _nurseFromJson(json)).toList();
 
-      print('Successfully loaded ${nurses.length} nurses');
       return nurses;
     } catch (e) {
       print('Error loading nurse data: $e');
@@ -47,8 +47,6 @@ class NurseRepository {
 
       final jsonString = JsonEncoder.withIndent('  ').convert(data);
       file.writeAsStringSync(jsonString);
-
-      print('Successfully saved ${nurses.length} nurses');
     } catch (e) {
       print('Error saving nurse data: $e');
     }

@@ -3,959 +3,449 @@ import '../domain/staff.dart';
 import '../domain/doctor.dart';
 import '../domain/nurse.dart';
 import '../domain/administrative_staff.dart';
-import '../service/admin_service.dart';
+import '../service/staff_service.dart';
+import '../service/medical_staff_service.dart';
 
-/// Simplified Console UI for Hospital Management System
 class HospitalConsole {
-  final AdminService adminService;
+  final StaffService staffService;
+  final MedicalStaffService medicalStaffService;
 
   HospitalConsole({
-    required this.adminService,
+    required this.staffService,
+    required this.medicalStaffService,
   });
 
-  /// Start the hospital management system
   void start() {
-    print('\n╔═══════════════════════════════════════════════════╗');
-    print('║   HOSPITAL MANAGEMENT SYSTEM - STAFF MANAGER      ║');
-    print('╚═══════════════════════════════════════════════════╝\n');
-
-    // Data is already loaded by AdminService constructor
+    _printHeader('HOSPITAL MANAGEMENT SYSTEM');
 
     while (true) {
-      displayMainMenu();
-      final choice = getUserInput('\n➤ Enter choice: ');
-
+      _showMainMenu();
+      final choice = _input('➤ Choice: ');
       if (choice == '0') {
-        saveAllData();
-        print('\n✅ All data saved!');
-        print('👋 Thank you for using Hospital Management System!\n');
+        print('\n✅ Data saved. Goodbye!\n');
         exit(0);
       }
-
-      handleMenuChoice(choice);
+      _handleMainMenu(choice);
+      _pause();
     }
   }
 
-  /// Display simplified main menu
-  void displayMainMenu() {
-    print('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    print('              MAIN MENU');
-    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    print('1. 👥 View All Staff');
-    print('2. 🔍 Search Staff by Name');
-    print('3. ➕ Add New Staff');
-    print('4. ✏️  Update Staff Info');
-    print('5. ❌ Remove Staff');
-    print('6. 📊 View Statistics');
-    print('7. 🎯 Advanced Queries');
-    print('8. 💰 Salary Management');
-    print('9. 🔄 Department Transfer');
-    print('0. 🚪 Save & Exit');
-    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  // ===== MENUS =====
+
+  void _showMainMenu() {
+    print('\n${'=' * 50}\nMAIN MENU\n${'=' * 50}');
+    _printOptions([
+      '1.👥 View Staff',
+      '2.🔍 Search',
+      '3.➕ Add',
+      '4.✏️ Update',
+      '5.❌ Remove',
+      '6.🏥 Medical Ops',
+      '7.📊 Reports',
+      '8.💰 Salary',
+      '9.🔄 Transfer',
+      '0.🚪 Exit'
+    ]);
   }
 
-  /// Handle menu choice
-  void handleMenuChoice(String choice) {
+  void _handleMainMenu(String choice) {
     switch (choice) {
       case '1':
-        viewAllStaff();
+        _viewStaffMenu();
         break;
       case '2':
-        searchStaff();
+        _searchStaff();
         break;
       case '3':
-        addNewStaff();
+        _addStaff();
         break;
       case '4':
-        updateStaff();
+        _updateStaff();
         break;
       case '5':
-        removeStaff();
+        _removeStaff();
         break;
       case '6':
-        viewStatistics();
+        _medicalMenu();
         break;
       case '7':
-        advancedQueries();
+        _reportsMenu();
         break;
       case '8':
-        salaryManagement();
+        _applySalaryIncrease();
         break;
       case '9':
-        departmentTransfer();
+        _transferDept();
         break;
       default:
-        print('\n❌ Invalid choice. Please try again.');
-    }
-
-    pauseScreen();
-  }
-
-  /// View all staff
-  void viewAllStaff() {
-    final allStaff = getAllStaff();
-
-    if (allStaff.isEmpty) {
-      print('\n📭 No staff members found.');
-      return;
-    }
-
-    print('\n═══════════════════════════════════════════════════');
-    print('         ALL STAFF MEMBERS (${allStaff.length} total)');
-    print('═══════════════════════════════════════════════════');
-
-    for (var staff in allStaff) {
-      print('\n${staff.toString()}');
-      print('─' * 50);
+        print('❌ Invalid');
     }
   }
 
-  /// Search staff by name
-  void searchStaff() {
-    final query = getUserInput('\n🔍 Enter name to search: ');
-
-    if (query.trim().isEmpty) {
-      print('\n❌ Please enter a valid name.');
-      return;
-    }
-
-    final results = searchStaffByName(query);
-
-    if (results.isEmpty) {
-      print('\n📭 No staff found with name "$query".');
-      return;
-    }
-
-    print('\n═══════════════════════════════════════════════════');
-    print('         SEARCH RESULTS (${results.length} found)');
-    print('═══════════════════════════════════════════════════');
-
-    for (var staff in results) {
-      print('\n${staff.toString()}');
-      print('─' * 50);
+  void _viewStaffMenu() {
+    _printHeader('VIEW STAFF');
+    _printOptions(
+        ['1.All', '2.By Dept', '3.Doctors', '4.Nurses', '5.Admin', '0.Back']);
+    switch (_input('➤: ')) {
+      case '1':
+        _displayList(staffService.allStaff, 'ALL STAFF');
+        break;
+      case '2':
+        _viewByDept();
+        break;
+      case '3':
+        _displayList(medicalStaffService.getAllDoctors(), 'DOCTORS');
+        break;
+      case '4':
+        _displayList(medicalStaffService.getAllNurses(), 'NURSES');
+        break;
+      case '5':
+        _displayList(
+            staffService.allStaff.whereType<AdministrativeStaff>().toList(),
+            'ADMIN');
+        break;
     }
   }
 
-  /// Add new staff - simplified version
-  void addNewStaff() {
-    print('\n┌────────────────────────────┐');
-    print('│   SELECT STAFF ROLE        │');
-    print('├────────────────────────────┤');
-
-    // Display role options using enum
-    for (var i = 0; i < StaffRole.values.length; i++) {
-      final role = StaffRole.values[i];
-      final icon = i == 0 ? '�‍⚕️' : (i == 1 ? '👩‍⚕️' : '📋');
-      final name = role.toString().split('.').last;
-      print(
-          '│ ${i + 1}. $icon  ${name.substring(0, 1).toUpperCase()}${name.substring(1).padRight(17)}│');
-    }
-
-    print('└────────────────────────────┘');
-
-    final roleIndex =
-        getIntInput('\n➤ Select role (1-${StaffRole.values.length}): ') - 1;
-
-    if (roleIndex < 0 || roleIndex >= StaffRole.values.length) {
-      print('\n❌ Invalid choice.');
-      return;
-    }
-
-    final selectedRole = StaffRole.values[roleIndex];
-
+  void _medicalMenu() {
+    _printHeader('MEDICAL OPERATIONS');
+    _printOptions([
+      '1.Assign Patient',
+      '2.Remove Patient',
+      '3.Transfer Patient',
+      '4.Record Shift',
+      '5.Record Consultation',
+      '6.Add Cert',
+      '7.Remove Cert',
+      '8.Performance Report',
+      '9.Reset Counters',
+      '0.Back'
+    ]);
+    final choice = _input('➤: ');
     try {
-      switch (selectedRole) {
-        case StaffRole.DOCTOR:
-          addDoctor();
+      switch (choice) {
+        case '1':
+          medicalStaffService.assignPatient(
+              _input('Staff ID: '), _input('Patient ID: '));
+          print('✅ Assigned');
           break;
-        case StaffRole.NURSE:
-          addNurse();
+        case '2':
+          medicalStaffService.removePatient(
+              _input('Staff ID: '), _input('Patient ID: '));
+          print('✅ Removed');
           break;
-        case StaffRole.ADMINISTRATIVE:
-          addAdministrativeStaff();
+        case '3':
+          medicalStaffService.transferPatient(
+              _input('From ID: '), _input('To ID: '), _input('Patient ID: '));
+          print('✅ Transferred');
+          break;
+        case '4':
+          medicalStaffService.recordShift(_input('Staff ID: '));
+          print('✅ Shift recorded');
+          break;
+        case '5':
+          medicalStaffService.recordConsultation(_input('Doctor ID: '));
+          print('✅ Consultation recorded');
+          break;
+        case '6':
+          medicalStaffService.addCertification(
+              _input('Staff ID: '), _input('Certification: '));
+          print('✅ Added');
+          break;
+        case '7':
+          medicalStaffService.removeCertification(
+              _input('Staff ID: '), _input('Certification: '));
+          print('✅ Removed');
+          break;
+        case '8':
+          _showPerformanceReport();
+          break;
+        case '9':
+          if (_confirm('Reset all counters?')) {
+            medicalStaffService.resetAllMonthlyCounters();
+            print('✅ Reset');
+          }
           break;
       }
     } catch (e) {
-      print('\n❌ Error: $e');
+      print('❌ Error: $e');
     }
   }
 
-  /// Add doctor - simplified
-  void addDoctor() {
-    print('\n═══════════════════════════════════════');
-    print('           ADD NEW DOCTOR');
-    print('═══════════════════════════════════════');
-
-    // Basic info
-    final id = getUserInput('ID: ');
-    final firstName = getUserInput('First Name: ');
-    final lastName = getUserInput('Last Name: ');
-    final email = getUserInput('Email: ');
-    final phone = getUserInput('Phone: ');
-    final dob = getDateInput('Date of Birth (YYYY-MM-DD): ');
-    final hireDate = getDateInput('Hire Date (YYYY-MM-DD): ');
-    final experience = getIntInput('Years of Experience: ');
-    final salary = getDoubleInput('Salary: \$');
-
-    // Department
-    print('\n🏢 Departments:');
-    for (var i = 0; i < StaffDepartment.values.length; i++) {
-      final dept = StaffDepartment.values[i].name;
-      print('${i + 1}. $dept');
-    }
-    final deptIndex =
-        getIntInput('Select (1-${StaffDepartment.values.length}): ') - 1;
-    final department = StaffDepartment.values[deptIndex];
-
-    // Specialization
-    print('\n🏥 Specializations:');
-    for (var i = 0; i < Specialization.values.length; i++) {
-      final spec = Specialization.values[i].name;
-      print('${i + 1}. $spec');
-    }
-    final specIndex =
-        getIntInput('Select (1-${Specialization.values.length}): ') - 1;
-    final specialization = Specialization.values[specIndex];
-
-    // Shift
-    print('\n⏰ Shift Types:');
-    for (var i = 0; i < ShiftType.values.length; i++) {
-      final shift = ShiftType.values[i].name;
-      print('${i + 1}. $shift');
-    }
-    final shiftIndex =
-        getIntInput('Select (1-${ShiftType.values.length}): ') - 1;
-    final shift = ShiftType.values[shiftIndex];
-
-    // Create doctor
-    final doctor = Doctor(
-      id: id,
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      phoneNumber: phone,
-      dateOfBirth: dob,
-      hireDate: hireDate,
-      pastYearsOfExperience: experience,
-      department: department,
-      salary: salary,
-      specialization: specialization,
-      currentShift: shift,
-    );
-
-    adminService.addStaff(doctor);
-    print('\n✅ Doctor added successfully!');
-    print('💵 Base salary: \$${doctor.salary} (as per default)');
-  }
-
-  /// Add nurse - simplified
-  void addNurse() {
-    print('\n═══════════════════════════════════════');
-    print('           ADD NEW NURSE');
-    print('═══════════════════════════════════════');
-
-    // Basic info
-    final id = getUserInput('ID: ');
-    final firstName = getUserInput('First Name: ');
-    final lastName = getUserInput('Last Name: ');
-    final email = getUserInput('Email: ');
-    final phone = getUserInput('Phone: ');
-    final dob = getDateInput('Date of Birth (YYYY-MM-DD): ');
-    final hireDate = getDateInput('Hire Date (YYYY-MM-DD): ');
-    final experience = getIntInput('Years of Experience: ');
-    final salary = getDoubleInput('Salary: \$');
-
-    // Department
-    print('\n🏢 Departments:');
-    for (var i = 0; i < StaffDepartment.values.length; i++) {
-      final dept = StaffDepartment.values[i].name;
-      print('${i + 1}. $dept');
-    }
-    final deptIndex =
-        getIntInput('Select (1-${StaffDepartment.values.length}): ') - 1;
-    final department = StaffDepartment.values[deptIndex];
-
-    // Specialization
-    print('\n🩺 Nurse Specializations:');
-    for (var i = 0; i < NurseSpecialization.values.length; i++) {
-      final spec = NurseSpecialization.values[i].name;
-      print('${i + 1}. $spec');
-    }
-    final specIndex =
-        getIntInput('Select (1-${NurseSpecialization.values.length}): ') - 1;
-    final specialization = NurseSpecialization.values[specIndex];
-
-    // Shift
-    print('\n⏰ Shift Types:');
-    for (var i = 0; i < ShiftType.values.length; i++) {
-      final shift = ShiftType.values[i].name;
-      print('${i + 1}. $shift');
-    }
-    final shiftIndex =
-        getIntInput('Select (1-${ShiftType.values.length}): ') - 1;
-    final shift = ShiftType.values[shiftIndex];
-
-    // Create nurse
-    final nurse = Nurse(
-      id: id,
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      phoneNumber: phone,
-      dateOfBirth: dob,
-      hireDate: hireDate,
-      pastYearsOfExperience: experience,
-      department: department,
-      salary: salary,
-      specialization: specialization,
-      currentShift: shift,
-    );
-
-    adminService.addStaff(nurse);
-    print('\n✅ Nurse added successfully!');
-    print('💵 Base salary: \$${nurse.salary} (as per default)');
-  }
-
-  /// Add administrative staff - simplified (always day shift)
-  void addAdministrativeStaff() {
-    print('\n═══════════════════════════════════════');
-    print('      ADD NEW ADMIN STAFF');
-    print('═══════════════════════════════════════');
-
-    // Basic info
-    final id = getUserInput('ID: ');
-    final firstName = getUserInput('First Name: ');
-    final lastName = getUserInput('Last Name: ');
-    final email = getUserInput('Email: ');
-    final phone = getUserInput('Phone: ');
-    final dob = getDateInput('Date of Birth (YYYY-MM-DD): ');
-    final hireDate = getDateInput('Hire Date (YYYY-MM-DD): ');
-    final experience = getIntInput('Years of Experience: ');
-    final salary = getDoubleInput('Salary: \$');
-
-    // Department
-    print('\n🏢 Departments:');
-    for (var i = 0; i < StaffDepartment.values.length; i++) {
-      final dept = StaffDepartment.values[i].name;
-      print('${i + 1}. $dept');
-    }
-    final deptIndex =
-        getIntInput('Select (1-${StaffDepartment.values.length}): ') - 1;
-    final department = StaffDepartment.values[deptIndex];
-
-    // Position
-    print('\n💼 Administrative Positions:');
-    for (var i = 0; i < AdministrativePosition.values.length; i++) {
-      final pos = AdministrativePosition.values[i].name;
-      print('${i + 1}. $pos');
-    }
-    final posIndex =
-        getIntInput('Select (1-${AdministrativePosition.values.length}): ') - 1;
-    final position = AdministrativePosition.values[posIndex];
-
-    // Admin staff works day shift by default
-    final admin = AdministrativeStaff(
-      id: id,
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      phoneNumber: phone,
-      dateOfBirth: dob,
-      hireDate: hireDate,
-      pastYearsOfExperience: experience,
-      department: department,
-      salary: salary,
-      position: position,
-      currentShift: ShiftType.DAY,
-    );
-
-    adminService.addStaff(admin);
-    print('\n✅ Admin staff added successfully!');
-    print('⏰ Shift: Day shift (default for admin staff)');
-  }
-
-  /// Update staff - simplified
-  void updateStaff() {
-    final id = getUserInput('\n🔍 Enter staff ID: ');
-    final staff = getStaffById(id);
-
-    if (staff == null) {
-      print('\n❌ Staff not found.');
-      return;
-    }
-
-    print('\n' + staff.toString());
-
-    print('\n┌──────────────────────────┐');
-    print('│   UPDATE OPTIONS         │');
-    print('├──────────────────────────┤');
-    print('│ 1. Salary                │');
-    print('│ 2. Email                 │');
-    print('│ 3. Phone                 │');
-
-    // Role-specific options
-    if (staff is Doctor) {
-      print('│ 4. Record Consultation   │');
-      print('│ 5. Update Rating         │');
-    } else if (staff is Nurse) {
-      print('│ 4. Record Shift          │');
-      print('│ 5. Update Rating         │');
-    }
-
-    print('└──────────────────────────┘');
-
-    final choice = getUserInput('\n➤ Select: ');
-
-    switch (choice) {
+  void _reportsMenu() {
+    _printHeader('STATISTICS & REPORTS');
+    _printOptions(
+        ['1.Staff Count', '2.Dept Stats', '3.Medical Performance', '0.Back']);
+    switch (_input('➤: ')) {
       case '1':
-        final newSalary = getDoubleInput('New salary: \$');
-        try {
-          adminService.modify<Staff>(id, (staff) => staff.salary = newSalary);
-          print('\n✅ Salary updated!');
-        } catch (e) {
-          print('\n❌ Error: $e');
-        }
+        _showMap(staffService.getStaffCountByType(), 'STAFF COUNT');
         break;
       case '2':
-        final newEmail = getUserInput('New email: ');
-        try {
-          adminService.modify<Staff>(id, (staff) => staff.email = newEmail);
-          print('\n✅ Email updated!');
-        } catch (e) {
-          print('\n❌ Error: $e');
-        }
+        _showDeptStats();
         break;
       case '3':
-        final newPhone = getUserInput('New phone: ');
-        try {
-          adminService.modify<Staff>(
-              id, (staff) => staff.phoneNumber = newPhone);
-          print('\n✅ Phone number updated!');
-        } catch (e) {
-          print('\n❌ Error: $e');
-        }
+        _showPerformanceReport();
         break;
-      case '4':
-        if (staff is Doctor) {
-          try {
-            adminService.modify<Doctor>(
-                id, (doctor) => doctor.consultationsThisMonth++);
-            // Refresh staff data to get updated count
-            final updatedDoctor = adminService.getById<Doctor>(id);
-            print(
-                '\n✅ Consultation recorded! Total: ${updatedDoctor?.consultationsThisMonth ?? 0}');
-          } catch (e) {
-            print('\n❌ Error: $e');
-          }
-        } else if (staff is Nurse) {
-          try {
-            adminService.modify<Nurse>(id, (nurse) => nurse.shiftsThisMonth++);
-            // Refresh staff data to get updated count
-            final updatedNurse = adminService.getById<Nurse>(id);
-            print(
-                '\n✅ Shift recorded! Total: ${updatedNurse?.shiftsThisMonth ?? 0}');
-          } catch (e) {
-            print('\n❌ Error: $e');
-          }
-        }
+    }
+  }
+
+  // ===== OPERATIONS =====
+
+  void _searchStaff() {
+    final query = _input('🔍 Name: ');
+    if (query.isEmpty) return;
+    _displayList(staffService.searchStaffByName(query), 'SEARCH: $query');
+  }
+
+  void _addStaff() {
+    _printOptions(['1.Doctor', '2.Nurse', '3.Admin']);
+    switch (_input('➤ Role: ')) {
+      case '1':
+        _addDoctor();
         break;
-      case '5':
-        // Note: patientRating and performanceRating were removed from domain model
-        print('\n⚠️  Rating feature removed from system');
+      case '2':
+        _addNurse();
+        break;
+      case '3':
+        _addAdmin();
+        break;
+    }
+  }
+
+  void _addDoctor() {
+    try {
+      staffService.addStaff(Doctor(
+        id: _input('ID: '),
+        firstName: _input('First: '),
+        lastName: _input('Last: '),
+        email: _input('Email: '),
+        phoneNumber: _input('Phone: '),
+        dateOfBirth: _inputDate('DOB: '),
+        hireDate: _inputDate('Hire: '),
+        pastYearsOfExperience: _inputInt('Experience: '),
+        salary: _inputDouble('Salary: '),
+        department: _selectEnum(StaffDepartment.values, 'Dept'),
+        specialization:
+            _selectEnum(DoctorSpecialization.values, 'Specialization'),
+        currentShift: _selectEnum(ShiftType.values, 'Shift'),
+      ));
+      print('✅ Doctor added');
+    } catch (e) {
+      print('❌ Error: $e');
+    }
+  }
+
+  void _addNurse() {
+    try {
+      staffService.addStaff(Nurse(
+        id: _input('ID: '),
+        firstName: _input('First: '),
+        lastName: _input('Last: '),
+        email: _input('Email: '),
+        phoneNumber: _input('Phone: '),
+        dateOfBirth: _inputDate('DOB: '),
+        hireDate: _inputDate('Hire: '),
+        pastYearsOfExperience: _inputInt('Experience: '),
+        salary: _inputDouble('Salary: '),
+        department: _selectEnum(StaffDepartment.values, 'Dept'),
+        specialization:
+            _selectEnum(NurseSpecialization.values, 'Specialization'),
+        currentShift: _selectEnum(ShiftType.values, 'Shift'),
+      ));
+      print('✅ Nurse added');
+    } catch (e) {
+      print('❌ Error: $e');
+    }
+  }
+
+  void _addAdmin() {
+    try {
+      staffService.addStaff(AdministrativeStaff(
+        id: _input('ID: '),
+        firstName: _input('First: '),
+        lastName: _input('Last: '),
+        email: _input('Email: '),
+        phoneNumber: _input('Phone: '),
+        dateOfBirth: _inputDate('DOB: '),
+        hireDate: _inputDate('Hire: '),
+        pastYearsOfExperience: _inputInt('Experience: '),
+        salary: _inputDouble('Salary: '),
+        department: _selectEnum(StaffDepartment.values, 'Dept'),
+        position: _selectEnum(AdministrativePosition.values, 'Position'),
+        currentShift: _selectEnum(ShiftType.values, 'Shift'),
+      ));
+      print('✅ Admin added');
+    } catch (e) {
+      print('❌ Error: $e');
+    }
+  }
+
+  void _updateStaff() {
+    final staff = staffService.getStaffById(_input('Staff ID: '));
+    if (staff == null) return print('❌ Not found');
+
+    print('\nCurrent: ${staff.firstName} ${staff.lastName}');
+    _printOptions(['1.Salary', '2.Email', '3.Phone']);
+
+    switch (_input('➤: ')) {
+      case '1':
+        staff.salary = _inputDouble('New Salary: ');
+        print('✅ Updated');
+        break;
+      case '2':
+        staff.email = _input('New Email: ');
+        print('✅ Updated');
+        break;
+      case '3':
+        staff.phoneNumber = _input('New Phone: ');
+        print('✅ Updated');
         break;
       default:
-        print('\n❌ Invalid option.');
+        return;
+    }
+    staffService.updateStaff(staff);
+  }
+
+  void _removeStaff() {
+    final id = _input('Staff ID: ');
+    final staff = staffService.getStaffById(id);
+    if (staff == null) return print('❌ Not found');
+
+    print('Remove: ${staff.firstName} ${staff.lastName} (${staff.role.name})');
+    if (_confirm('Confirm?')) {
+      staffService.removeStaff(id);
+      print('✅ Removed');
     }
   }
 
-  /// Remove staff - simplified
-  void removeStaff() {
-    final id = getUserInput('\n🔍 Enter staff ID to remove: ');
-    final staff = getStaffById(id);
+  void _transferDept() {
+    final staff = staffService.getStaffById(_input('Staff ID: '));
+    if (staff == null) return print('❌ Not found');
 
-    if (staff == null) {
-      print('\n❌ Staff not found.');
-      return;
-    }
+    print('Current Dept: ${staff.department.name}');
+    final newDept = _selectEnum(StaffDepartment.values, 'New Dept');
+    if (newDept == staff.department) return print('❌ Same dept');
 
-    print('\n📋 Staff to be removed:');
-    print('Name: ${staff.firstName} ${staff.lastName}');
-    print('Role: ${staff.role.name}');
-    print('Department: ${staff.department.name}');
-
-    final confirm = getUserInput('\n⚠️  Confirm removal? (yes/no): ');
-
-    if (confirm.toLowerCase() == 'yes') {
-      removeStaffFromRepository(id);
-      print('\n✅ Staff removed successfully!');
-    } else {
-      print('\n❌ Cancelled.');
+    if (_confirm('Transfer?')) {
+      staffService.transferDepartment(staff.id, newDept);
+      print('✅ Transferred');
     }
   }
 
-  /// View statistics - simplified
-  void viewStatistics() {
-    final allStaff = getAllStaff();
-    final doctors = adminService.getAll<Doctor>();
-    final nurses = adminService.getAll<Nurse>();
-    final admin = adminService.getAll<AdministrativeStaff>();
+  void _applySalaryIncrease() {
+    final dept = _selectEnum(StaffDepartment.values, 'Department');
+    final pct = _inputDouble('Increase %: ');
+    if (pct <= 0) return print('❌ Must be positive');
 
-    final totalSalary = allStaff.fold<double>(0, (sum, s) => sum + s.salary);
-    final avgSalary = allStaff.isEmpty ? 0.0 : totalSalary / allStaff.length;
+    if (_confirm('Apply $pct% to ${dept.name}?')) {
+      staffService.applyDepartmentSalaryIncrease(dept, pct);
+      print('✅ Applied');
+    }
+  }
 
-    print('\n╔════════════════════════════════════════════╗');
-    print('║       HOSPITAL STAFF STATISTICS            ║');
-    print('╚════════════════════════════════════════════╝');
-    print('');
-    print('📊 STAFF COUNT:');
-    print('   Total: ${allStaff.length}');
-    print('   • Doctors: ${doctors.length}');
-    print('   • Nurses: ${nurses.length}');
-    print('   • Admin Staff: ${admin.length}');
-    print('');
-    print('💰 SALARY OVERVIEW:');
-    print('   Total Payroll: \$${totalSalary.toStringAsFixed(2)}');
-    print('   Average Salary: \$${avgSalary.toStringAsFixed(2)}');
-    print('');
-    print('📈 DEPARTMENT BREAKDOWN:');
+  void _viewByDept() {
+    final dept = _selectEnum(StaffDepartment.values, 'Department');
+    _displayList(staffService.getByDepartment<Staff>(dept), dept.name);
+  }
 
-    // Group by department
-    final deptBreakdown = adminService.getDepartmentStatistics();
-    final breakdown = deptBreakdown['breakdown'] as Map<String, int>;
+  // ===== REPORTS =====
 
-    breakdown.forEach((dept, count) {
-      print('   • $dept: $count');
+  void _showPerformanceReport() {
+    final r = medicalStaffService.getPerformanceReport();
+    print('\n${'=' * 50}\nMEDICAL PERFORMANCE REPORT\n${'=' * 50}');
+    print('Total Medical Staff: ${r['totalMedicalStaff']}');
+    print(
+        'Doctors: ${r['staffBreakdown']['doctors']} | Nurses: ${r['staffBreakdown']['nurses']}');
+    final p = r['performance'];
+    print(
+        '\nAvg Doctor Consultations: ${p['avgDoctorConsultations'].toStringAsFixed(1)}');
+    print('Avg Doctor Shifts: ${p['avgDoctorShifts'].toStringAsFixed(1)}');
+    print('Avg Nurse Shifts: ${p['avgNurseShifts'].toStringAsFixed(1)}');
+    final w = r['workload'];
+    print('\nOverloaded (>10 patients): ${w['overloadedStaff']}');
+    print('Underutilized (0 patients): ${w['underutilizedStaff']}');
+  }
+
+  void _showDeptStats() {
+    final stats = staffService.getDepartmentStatistics();
+    print('\n${'=' * 50}\nDEPARTMENT STATISTICS\n${'=' * 50}');
+    stats.forEach((dept, data) {
+      final d = data as Map<String, dynamic>;
+      print(
+          '$dept: ${d['totalStaff']} staff, Avg Salary: \$${d['avgSalary'].toStringAsFixed(2)}');
     });
-    print('');
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // HELPER METHODS
-  // ═══════════════════════════════════════════════════════════
+  // ===== HELPERS =====
 
-  List<Staff> getAllStaff() {
-    return adminService.getAll<Staff>();
+  void _printHeader(String title) =>
+      print('\n${'=' * 50}\n$title\n${'=' * 50}');
+
+  void _printOptions(List<String> options) {
+    for (var opt in options) print('  $opt');
   }
 
-  void saveAllData() {
-    // Services handle saving automatically via repositories
-    print('Data is automatically saved after each operation');
+  void _displayList(List items, String title) {
+    print('\n${'=' * 50}\n$title (${items.length})\n${'=' * 50}');
+    if (items.isEmpty) {
+      print('📭 No items found');
+    } else {
+      for (var item in items) print('\n$item\n${'-' * 50}');
+    }
   }
 
-  Staff? getStaffById(String id) {
-    return adminService.getById<Staff>(id);
+  void _showMap(Map<String, dynamic> map, String title) {
+    print('\n${'=' * 50}\n$title\n${'=' * 50}');
+    map.forEach((k, v) => print('$k: $v'));
   }
 
-  List<Staff> searchStaffByName(String query) {
-    return adminService.searchByName(query);
+  T _selectEnum<T>(List<T> values, String label) {
+    print('\nSelect $label:');
+    for (var i = 0; i < values.length; i++) {
+      print('${i + 1}. ${values[i].toString().split('.').last}');
+    }
+    return values[_inputInt('➤: ') - 1];
   }
 
-  void updateStaffInRepository(Staff staff) {
-    adminService.updateStaff(staff);
-  }
-
-  void removeStaffFromRepository(String id) {
-    adminService.removeStaff(id);
-  }
-
-  String getUserInput(String prompt) {
+  String _input(String prompt) {
     stdout.write(prompt);
-    return stdin.readLineSync() ?? '';
+    return stdin.readLineSync()?.trim() ?? '';
   }
 
-  int getIntInput(String prompt) {
+  int _inputInt(String prompt) {
     while (true) {
       try {
-        return int.parse(getUserInput(prompt));
+        return int.parse(_input(prompt));
       } catch (e) {
-        print('❌ Invalid number. Try again.');
+        print('❌ Invalid number');
       }
     }
   }
 
-  double getDoubleInput(String prompt) {
+  double _inputDouble(String prompt) {
     while (true) {
       try {
-        return double.parse(getUserInput(prompt));
+        return double.parse(_input(prompt));
       } catch (e) {
-        print('❌ Invalid number. Try again.');
+        print('❌ Invalid number');
       }
     }
   }
 
-  DateTime getDateInput(String prompt) {
+  DateTime _inputDate(String prompt) {
     while (true) {
       try {
-        return DateTime.parse(getUserInput(prompt));
+        return DateTime.parse(_input('$prompt(YYYY-MM-DD): '));
       } catch (e) {
-        print('❌ Invalid date. Use YYYY-MM-DD format.');
+        print('❌ Invalid date');
       }
     }
   }
 
-  void pauseScreen() {
-    print('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    print('Press Enter to continue...');
+  bool _confirm(String msg) => _input('$msg (yes/no): ').toLowerCase() == 'yes';
+
+  void _pause() {
+    print('\n${'=' * 50}\nPress Enter...');
     stdin.readLineSync();
-  }
-
-  // ============================================================================
-  // NEW ADMIN METHODS
-  // ============================================================================
-
-  /// Advanced Queries Menu
-  void advancedQueries() {
-    print('\n┌─────────────────────────────────┐');
-    print('│     ADVANCED QUERIES            │');
-    print('├─────────────────────────────────┤');
-    print('│ 1. Doctors by Specialization    │');
-    print('│ 2. Nurses by Specialization     │');
-    print('│ 3. Admin Staff by Position      │');
-    print('│ 4. Staff by Department           │');
-    print('│ 5. Performance Report            │');
-    print('│ 0. Back to Main Menu             │');
-    print('└─────────────────────────────────┘');
-
-    final choice = getUserInput('\n➤ Select: ');
-
-    switch (choice) {
-      case '1':
-        viewDoctorsBySpecialization();
-        break;
-      case '2':
-        viewNursesBySpecialization();
-        break;
-      case '3':
-        viewAdminStaffByPosition();
-        break;
-      case '4':
-        viewStaffByDepartment();
-        break;
-      case '5':
-        viewPerformanceReport();
-        break;
-      case '0':
-        return;
-      default:
-        print('\n❌ Invalid choice.');
-    }
-  }
-
-  /// View doctors by specialization
-  void viewDoctorsBySpecialization() {
-    print('\n┌────────────────────────────────┐');
-    print('│   SELECT SPECIALIZATION        │');
-    print('├────────────────────────────────┤');
-    int index = 1;
-    for (var spec in Specialization.values) {
-      print('│ ${index++}. ${spec.name.padRight(26)} │');
-    }
-    print('└────────────────────────────────┘');
-
-    final choice = getIntInput('\n➤ Select: ');
-    if (choice < 1 || choice > Specialization.values.length) {
-      print('\n❌ Invalid choice.');
-      return;
-    }
-
-    final specialization = Specialization.values[choice - 1];
-    final doctors = adminService.getDoctorsBySpecialization(specialization);
-
-    if (doctors.isEmpty) {
-      print(
-          '\n📭 No doctors found with specialization: ${specialization.name}');
-      return;
-    }
-
-    print('\n═══════════════════════════════════════════════════');
-    print('  DOCTORS - ${specialization.name} (${doctors.length} total)');
-    print('═══════════════════════════════════════════════════');
-
-    for (var doctor in doctors) {
-      print('\n${doctor.toString()}');
-      print('─' * 50);
-    }
-  }
-
-  /// View nurses by specialization
-  void viewNursesBySpecialization() {
-    print('\n┌────────────────────────────────┐');
-    print('│   SELECT SPECIALIZATION        │');
-    print('├────────────────────────────────┤');
-    int index = 1;
-    for (var spec in NurseSpecialization.values) {
-      print('│ ${index++}. ${spec.name.padRight(26)} │');
-    }
-    print('└────────────────────────────────┘');
-
-    final choice = getIntInput('\n➤ Select: ');
-    if (choice < 1 || choice > NurseSpecialization.values.length) {
-      print('\n❌ Invalid choice.');
-      return;
-    }
-
-    final specialization = NurseSpecialization.values[choice - 1];
-    final nurses = adminService.getNursesBySpecialization(specialization);
-
-    if (nurses.isEmpty) {
-      print('\n📭 No nurses found with specialization: ${specialization.name}');
-      return;
-    }
-
-    print('\n═══════════════════════════════════════════════════');
-    print('  NURSES - ${specialization.name} (${nurses.length} total)');
-    print('═══════════════════════════════════════════════════');
-
-    for (var nurse in nurses) {
-      print('\n${nurse.toString()}');
-      print('─' * 50);
-    }
-  }
-
-  /// View admin staff by position
-  void viewAdminStaffByPosition() {
-    print('\n┌────────────────────────────────┐');
-    print('│   SELECT POSITION              │');
-    print('├────────────────────────────────┤');
-    int index = 1;
-    for (var pos in AdministrativePosition.values) {
-      print('│ ${index++}. ${pos.name.padRight(26)} │');
-    }
-    print('└────────────────────────────────┘');
-
-    final choice = getIntInput('\n➤ Select: ');
-    if (choice < 1 || choice > AdministrativePosition.values.length) {
-      print('\n❌ Invalid choice.');
-      return;
-    }
-
-    final position = AdministrativePosition.values[choice - 1];
-    final staff = adminService.getAdminStaffByPosition(position);
-
-    if (staff.isEmpty) {
-      print(
-          '\n📭 No administrative staff found with position: ${position.name}');
-      return;
-    }
-
-    print('\n═══════════════════════════════════════════════════');
-    print('  ADMIN STAFF - ${position.name} (${staff.length} total)');
-    print('═══════════════════════════════════════════════════');
-
-    for (var s in staff) {
-      print('\n${s.toString()}');
-      print('─' * 50);
-    }
-  }
-
-  /// View staff by department
-  void viewStaffByDepartment() {
-    print('\n┌────────────────────────────────┐');
-    print('│   SELECT DEPARTMENT            │');
-    print('├────────────────────────────────┤');
-    int index = 1;
-    for (var dept in StaffDepartment.values) {
-      print('│ ${index++}. ${dept.name.padRight(26)} │');
-    }
-    print('└────────────────────────────────┘');
-
-    final choice = getIntInput('\n➤ Select: ');
-    if (choice < 1 || choice > StaffDepartment.values.length) {
-      print('\n❌ Invalid choice.');
-      return;
-    }
-
-    final department = StaffDepartment.values[choice - 1];
-    final staff = adminService.getByDepartment<Staff>(department);
-
-    if (staff.isEmpty) {
-      print('\n📭 No staff found in department: ${department.name}');
-      return;
-    }
-
-    print('\n═══════════════════════════════════════════════════');
-    print('  DEPARTMENT - ${department.name} (${staff.length} total)');
-    print('═══════════════════════════════════════════════════');
-
-    for (var s in staff) {
-      print('\n${s.toString()}');
-      print('─' * 50);
-    }
-  }
-
-  /// View performance report
-  void viewPerformanceReport() {
-    final report = adminService.getPerformanceReport();
-
-    print('\n╔═══════════════════════════════════════════════════╗');
-    print('║          HOSPITAL PERFORMANCE REPORT              ║');
-    print('╚═══════════════════════════════════════════════════╝');
-
-    print('\n📊 OVERALL STATISTICS:');
-    print('─' * 50);
-    print('Total Staff: ${report['totalStaff']}');
-    print('Doctors: ${report['doctors']}');
-    print('Nurses: ${report['nurses']}');
-    print('Administrative Staff: ${report['administrativeStaff']}');
-
-    print('\n📈 PERFORMANCE METRICS:');
-    print('─' * 50);
-    print(
-        'Avg Doctor Consultations/Month: ${(report['avgDoctorConsultations'] as double).toStringAsFixed(1)}');
-    print(
-        'Avg Medical Staff Shifts/Month: ${(report['avgMedicalStaffShifts'] as double).toStringAsFixed(1)}');
-    print('Overloaded Staff (>10 patients): ${report['overloadedStaff']}');
-
-    print('\n🏥 DEPARTMENT BREAKDOWN:');
-    print('─' * 50);
-    final breakdown = report['departmentBreakdown'] as Map<String, dynamic>;
-    breakdown.forEach((dept, count) {
-      print('${dept.padRight(30)}: $count staff');
-    });
-  }
-
-  /// Salary Management Menu
-  void salaryManagement() {
-    print('\n┌─────────────────────────────────┐');
-    print('│     SALARY MANAGEMENT           │');
-    print('├─────────────────────────────────┤');
-    print('│ 1. Bulk Salary Increase (All)   │');
-    print('│ 2. Department Salary Increase   │');
-    print('│ 0. Back to Main Menu             │');
-    print('└─────────────────────────────────┘');
-
-    final choice = getUserInput('\n➤ Select: ');
-
-    switch (choice) {
-      case '1':
-        applyBulkSalaryIncrease();
-        break;
-      case '2':
-        applyDepartmentSalaryIncrease();
-        break;
-      case '0':
-        return;
-      default:
-        print('\n❌ Invalid choice.');
-    }
-  }
-
-  /// Apply bulk salary increase to all staff
-  void applyBulkSalaryIncrease() {
-    final percentage =
-        getDoubleInput('\n💰 Enter salary increase percentage: ');
-
-    if (percentage <= 0) {
-      print('\n❌ Percentage must be positive.');
-      return;
-    }
-
-    final confirm = getUserInput(
-        '\n⚠️  Apply ${percentage}% increase to ALL staff? (yes/no): ');
-
-    if (confirm.toLowerCase() == 'yes') {
-      try {
-        adminService.applyBulkSalaryIncrease(percentage);
-        print(
-            '\n✅ Bulk salary increase of ${percentage}% applied to all staff!');
-      } catch (e) {
-        print('\n❌ Error: $e');
-      }
-    } else {
-      print('\n❌ Cancelled.');
-    }
-  }
-
-  /// Apply department salary increase
-  void applyDepartmentSalaryIncrease() {
-    print('\n┌────────────────────────────────┐');
-    print('│   SELECT DEPARTMENT            │');
-    print('├────────────────────────────────┤');
-    int index = 1;
-    for (var dept in StaffDepartment.values) {
-      print('│ ${index++}. ${dept.name.padRight(26)} │');
-    }
-    print('└────────────────────────────────┘');
-
-    final choice = getIntInput('\n➤ Select: ');
-    if (choice < 1 || choice > StaffDepartment.values.length) {
-      print('\n❌ Invalid choice.');
-      return;
-    }
-
-    final department = StaffDepartment.values[choice - 1];
-    final percentage =
-        getDoubleInput('\n💰 Enter salary increase percentage: ');
-
-    if (percentage <= 0) {
-      print('\n❌ Percentage must be positive.');
-      return;
-    }
-
-    final confirm = getUserInput(
-        '\n⚠️  Apply ${percentage}% increase to ${department.name} staff? (yes/no): ');
-
-    if (confirm.toLowerCase() == 'yes') {
-      try {
-        adminService.applyDepartmentSalaryIncrease(department, percentage);
-        print(
-            '\n✅ Salary increase of ${percentage}% applied to ${department.name} staff!');
-      } catch (e) {
-        print('\n❌ Error: $e');
-      }
-    } else {
-      print('\n❌ Cancelled.');
-    }
-  }
-
-  /// Department Transfer
-  void departmentTransfer() {
-    final id = getUserInput('\n🔍 Enter staff ID to transfer: ');
-    final staff = getStaffById(id);
-
-    if (staff == null) {
-      print('\n❌ Staff not found.');
-      return;
-    }
-
-    print('\n📋 Staff Information:');
-    print('Name: ${staff.firstName} ${staff.lastName}');
-    print('Current Department: ${staff.department.name}');
-
-    print('\n┌────────────────────────────────┐');
-    print('│   SELECT NEW DEPARTMENT        │');
-    print('├────────────────────────────────┤');
-    int index = 1;
-    for (var dept in StaffDepartment.values) {
-      print('│ ${index++}. ${dept.name.padRight(26)} │');
-    }
-    print('└────────────────────────────────┘');
-
-    final choice = getIntInput('\n➤ Select: ');
-    if (choice < 1 || choice > StaffDepartment.values.length) {
-      print('\n❌ Invalid choice.');
-      return;
-    }
-
-    final newDepartment = StaffDepartment.values[choice - 1];
-
-    if (newDepartment == staff.department) {
-      print('\n❌ Staff is already in ${newDepartment.name}.');
-      return;
-    }
-
-    final confirm = getUserInput(
-        '\n⚠️  Transfer ${staff.firstName} ${staff.lastName} from ${staff.department.name} to ${newDepartment.name}? (yes/no): ');
-
-    if (confirm.toLowerCase() == 'yes') {
-      try {
-        adminService.transferDepartment(id, newDepartment);
-        print('\n✅ Successfully transferred to ${newDepartment.name}!');
-      } catch (e) {
-        print('\n❌ Error: $e');
-      }
-    } else {
-      print('\n❌ Cancelled.');
-    }
   }
 }
