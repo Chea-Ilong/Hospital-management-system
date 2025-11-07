@@ -9,7 +9,6 @@ class DoctorRepository {
   DoctorRepository([String? customPath])
       : filePath = customPath ?? 'lib/data/storage/doctors_data.json';
 
-  /// Load all doctors from JSON file
   List<Doctor> loadAllDoctors() {
     try {
       final file = File(filePath);
@@ -32,7 +31,6 @@ class DoctorRepository {
     }
   }
 
-  /// Save all doctors to JSON file
   void saveAllDoctors(List<Doctor> doctors) {
     try {
       final file = File(filePath);
@@ -53,7 +51,6 @@ class DoctorRepository {
     }
   }
 
-  /// Convert Doctor to JSON
   Map<String, dynamic> _doctorToJson(Doctor doctor) {
     return {
       'id': doctor.id,
@@ -75,7 +72,6 @@ class DoctorRepository {
     };
   }
 
-  /// Convert JSON to Doctor
   Doctor _doctorFromJson(Map<String, dynamic> json) {
     return Doctor(
       id: json['id'],

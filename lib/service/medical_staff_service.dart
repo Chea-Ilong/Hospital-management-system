@@ -3,49 +3,51 @@ import '../domain/doctor.dart';
 import '../domain/nurse.dart';
 import 'staff_service.dart';
 
-/// Medical Staff Service - Clinical operations for Doctors & Nurses
-/// Handles: Patient assignment, Shifts, Consultations, Certifications
 class MedicalStaffService {
   final StaffService _staffService;
 
   MedicalStaffService(this._staffService);
 
-  // ============================================================================
-  // MEDICAL STAFF QUERIES (3 methods)
-  // ============================================================================
-
-  /// Get all medical staff
   List<MedicalStaff> getAllMedicalStaff() {
     return _staffService.allStaff.whereType<MedicalStaff>().toList();
   }
 
-  /// Get all doctors
   List<Doctor> getAllDoctors() {
     return _staffService.allStaff.whereType<Doctor>().toList();
   }
 
-  /// Get all nurses
   List<Nurse> getAllNurses() {
     return _staffService.allStaff.whereType<Nurse>().toList();
   }
 
-  // ============================================================================
-  // PATIENT MANAGEMENT (3 methods)
-  // ============================================================================
-
-  /// Assign patient to medical staff
   void assignPatient(String staffId, String patientId) {
     final medicalStaff = _getMedicalStaffById(staffId);
     if (medicalStaff == null) {
       throw ArgumentError('Medical staff with ID $staffId not found');
     }
-    if (!medicalStaff.assignedPatients.contains(patientId)) {
-      medicalStaff.assignedPatients.add(patientId);
-      _staffService.updateStaff(medicalStaff);
+
+    if (medicalStaff.hasPatient(patientId)) {
+      return;
     }
+
+    if (!medicalStaff.canTakeMorePatients) {
+      throw StateError(
+        'Cannot assign patient to ${medicalStaff.getFullName} (ID: $staffId): '
+        'Staff is at capacity with ${medicalStaff.assignedPatients.length} patients. '
+        'Maximum allowed is 10 patients.'
+      );
+    }
+
+    if (medicalStaff.isOverloaded) {
+      print('WARNING: ${medicalStaff.getFullName} is overloaded '
+          '(${medicalStaff.assignedPatients.length} patients, '
+          '${medicalStaff.shiftsThisMonth} shifts)');
+    }
+
+    medicalStaff.assignedPatients.add(patientId);
+    _staffService.updateStaff(medicalStaff);
   }
 
-  /// Remove patient from medical staff
   void removePatient(String staffId, String patientId) {
     final medicalStaff = _getMedicalStaffById(staffId);
     if (medicalStaff == null) {
@@ -55,57 +57,83 @@ class MedicalStaffService {
     _staffService.updateStaff(medicalStaff);
   }
 
-  /// Transfer patient between medical staff
   void transferPatient(String fromStaffId, String toStaffId, String patientId) {
+    final fromStaff = _getMedicalStaffById(fromStaffId);
+    if (fromStaff == null) {
+      throw ArgumentError('Source medical staff with ID $fromStaffId not found');
+    }
+
+    final toStaff = _getMedicalStaffById(toStaffId);
+    if (toStaff == null) {
+      throw ArgumentError('Destination medical staff with ID $toStaffId not found');
+    }
+
+    if (!toStaff.canTakeMorePatients && !toStaff.hasPatient(patientId)) {
+      throw StateError(
+        'Cannot transfer patient to ${toStaff.getFullName}: '
+        'Staff is at capacity with ${toStaff.assignedPatients.length} patients'
+      );
+    }
+
     removePatient(fromStaffId, patientId);
     assignPatient(toStaffId, patientId);
   }
 
-  // ============================================================================
-  // SHIFT MANAGEMENT (1 method)
-  // ============================================================================
-
-  /// Record shift for medical staff
   void recordShift(String staffId) {
     final medicalStaff = _getMedicalStaffById(staffId);
     if (medicalStaff == null) {
       throw ArgumentError('Medical staff with ID $staffId not found');
     }
+
     medicalStaff.shiftsThisMonth++;
+
+    if (!medicalStaff.hasValidShiftsCount) {
+      medicalStaff.shiftsThisMonth--;
+      throw StateError(
+        'Cannot record shift for ${medicalStaff.getFullName}: '
+        'Shift count would exceed maximum (current: ${medicalStaff.shiftsThisMonth}, '
+        'maximum: 31 shifts per month)'
+      );
+    }
+
+    if (medicalStaff.isOverloaded) {
+      print('WARNING: ${medicalStaff.getFullName} is now overloaded '
+          '(${medicalStaff.shiftsThisMonth} shifts)');
+    }
+
     _staffService.updateStaff(medicalStaff);
   }
 
-  // ============================================================================
-  // DOCTOR-SPECIFIC OPERATIONS (1 method)
-  // ============================================================================
-
-  /// Record doctor consultation
   void recordConsultation(String doctorId) {
     final doctor = _getDoctorById(doctorId);
     if (doctor == null) {
       throw ArgumentError('Doctor with ID $doctorId not found');
     }
+
     doctor.consultationsThisMonth++;
+
+    if (!doctor.hasValidConsultations) {
+      doctor.consultationsThisMonth--;
+      throw StateError(
+        'Cannot record consultation for ${doctor.getFullName}: '
+        'Invalid consultation count'
+      );
+    }
+
     _staffService.updateStaff(doctor);
   }
 
-  // ============================================================================
-  // CERTIFICATION MANAGEMENT (2 methods)
-  // ============================================================================
-
-  /// Add certification to medical staff
   void addCertification(String staffId, String certification) {
     final medicalStaff = _getMedicalStaffById(staffId);
     if (medicalStaff == null) {
       throw ArgumentError('Medical staff with ID $staffId not found');
     }
-    if (!medicalStaff.certifications.contains(certification)) {
+    if (!medicalStaff.hasCertification(certification)) {
       medicalStaff.certifications.add(certification);
       _staffService.updateStaff(medicalStaff);
     }
   }
 
-  /// Remove certification from medical staff
   void removeCertification(String staffId, String certification) {
     final medicalStaff = _getMedicalStaffById(staffId);
     if (medicalStaff == null) {
@@ -115,11 +143,6 @@ class MedicalStaffService {
     _staffService.updateStaff(medicalStaff);
   }
 
-  // ============================================================================
-  // REPORTS & ANALYTICS (1 method)
-  // ============================================================================
-
-  /// Get comprehensive performance report
   Map<String, dynamic> getPerformanceReport() {
     final doctors = getAllDoctors();
     final nurses = getAllNurses();
@@ -150,12 +173,11 @@ class MedicalStaffService {
       },
       'workload': {
         'overloadedStaff':
-            medicalStaff.where((s) => s.assignedPatients.length > 10).length,
+            medicalStaff.where((s) => s.isOverloaded).length,
         'underutilizedStaff':
             medicalStaff.where((s) => s.assignedPatients.isEmpty).length,
         'overloaded': medicalStaff
-            .where(
-                (s) => s.assignedPatients.length > 10 || s.shiftsThisMonth > 20)
+            .where((s) => s.isOverloaded)
             .map((s) => _formatStaffWorkload(s))
             .toList(),
         'underutilized': medicalStaff
@@ -166,11 +188,6 @@ class MedicalStaffService {
     };
   }
 
-  // ============================================================================
-  // BATCH OPERATIONS (1 method)
-  // ============================================================================
-
-  /// Reset all monthly counters for all medical staff
   void resetAllMonthlyCounters() {
     for (var staff in getAllMedicalStaff()) {
       staff.shiftsThisMonth = 0;
@@ -181,23 +198,16 @@ class MedicalStaffService {
     }
   }
 
-  // ============================================================================
-  // PRIVATE HELPERS - Internal support methods (3 methods)
-  // ============================================================================
-
-  /// Get medical staff by ID (private helper)
   MedicalStaff? _getMedicalStaffById(String id) {
     final staff = _staffService.getStaffById(id);
     return (staff is MedicalStaff) ? staff : null;
   }
 
-  /// Get doctor by ID (private helper)
   Doctor? _getDoctorById(String id) {
     final staff = _staffService.getStaffById(id);
     return (staff is Doctor) ? staff : null;
-  }
+  } 
 
-  /// Format staff workload info for reports (private helper)
   Map<String, dynamic> _formatStaffWorkload(MedicalStaff staff) {
     final info = {
       'id': staff.id,

@@ -1,6 +1,6 @@
 enum ShiftType {
-  DAY(0.0), // 7 AM - 7 PM - No differential (base pay)
-  NIGHT(0.20); // 7 PM - 7 AM - 20% differential for disrupted sleep
+  DAY(0.0),
+  NIGHT(0.20);
 
   final double bonus;
   const ShiftType(this.bonus);
@@ -65,6 +65,27 @@ abstract class Staff {
   int get getYearsOfService => yearsBetween(hireDate, DateTime.now());
   int get getYearsOfExperience => getYearsOfService + pastYearsOfExperience;
   String get getShiftType => currentShift.name;
+
+  bool get hasValidEmail {
+    if (email.isEmpty || !email.contains('@') || !email.contains('.')) return false;
+    final parts = email.split('@');
+    if (parts.length != 2) return false;
+    return parts[0].isNotEmpty && parts[1].isNotEmpty && parts[1].contains('.');
+  }
+
+  bool get hasValidPhoneNumber => phoneNumber.isNotEmpty && phoneNumber.replaceAll(RegExp(r'\D'), '').length >= 7;
+
+  bool get hasValidDateOfBirth => dateOfBirth.isBefore(DateTime.now());
+  bool get isAdult => getAge >= 18;
+  bool get hasValidHireDate => hireDate.isBefore(DateTime.now()) || hireDate.isAtSameMomentAs(DateTime.now());
+
+  bool get hasValidExperience => pastYearsOfExperience >= 0;
+  bool get isSenior => getYearsOfExperience >= 10;
+  bool get isRecentHire => getYearsOfService <= 1;
+
+  bool get hasValidSalary => salary > 0;
+
+  bool hasSameIdAs(Staff other) => id == other.id;
 
   int yearsBetween(DateTime from, DateTime to) {
     int years = to.year - from.year;

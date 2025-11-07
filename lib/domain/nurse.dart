@@ -47,6 +47,7 @@ class Nurse extends MedicalStaff {
 
   @override
   String toString() {
-    return super.toString();
+    return '''${super.toString()}
+Specialization: ${getSpecializationName()}''';  
   }
 }

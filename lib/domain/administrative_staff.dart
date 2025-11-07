@@ -1,13 +1,11 @@
 import 'staff.dart';
 
-/// Enum for administrative positions
 enum AdministrativePosition {
   HR,
   RECEPTIONIST,
   SYSTEM_ADMIN,
 }
 
-/// Administrative Staff class extending Staff
 class AdministrativeStaff extends Staff {
   AdministrativePosition position;
 
@@ -28,10 +26,9 @@ class AdministrativeStaff extends Staff {
 
   @override
   double get getExperienceBonus => getYearsOfExperience * 100.0;
-
+  
   @override
   double computeSalary() {
-    // Admin staff work day shift only, no shift differential
     double total = salary;
     total += getExperienceBonus;
     return total;

@@ -24,13 +24,18 @@ abstract class MedicalStaff extends Staff {
   })  : certifications = certifications ?? [],
         assignedPatients = assignedPatients ?? [];
 
-  // Salary calculations - experienceBonus is abstract (implemented by Doctor/Nurse)
   double get getShiftDifferentialAmount =>
       (salary + getExperienceBonus) * currentShift.bonus;
 
   double get getTotalBonus => getExperienceBonus + getShiftDifferentialAmount;
 
-  // Abstract method to get specialization name (implemented by Doctor/Nurse)
+  bool hasPatient(String patientId) => assignedPatients.contains(patientId);
+  bool hasCertification(String certification) => certifications.contains(certification);
+
+  bool get hasValidShiftsCount => shiftsThisMonth >= 0 && shiftsThisMonth <= 31;
+  bool get isOverloaded => assignedPatients.length > 10 || shiftsThisMonth > 20;
+  bool get canTakeMorePatients => assignedPatients.length < 10;
+
   String  getSpecializationName();
 
   @override
@@ -45,8 +50,8 @@ abstract class MedicalStaff extends Staff {
   String toString() {
     final salaryBreakdown = '''
     Base Salary: \$${salary.toStringAsFixed(2)}
-    Experience Bonus: \$${getExperienceBonus.toStringAsFixed(2)} (${getYearsOfExperience} years × rate)
-    Shift Differential: \$${getShiftDifferentialAmount.toStringAsFixed(2)} (${currentShift.name} shift × ${currentShift.bonus * 100}%)
+    Experience Bonus: \$${getExperienceBonus.toStringAsFixed(2)} (${getYearsOfExperience} years x rate)
+    Shift Differential: \$${getShiftDifferentialAmount.toStringAsFixed(2)} (${currentShift.name} shift x ${currentShift.bonus * 100}%)
     Total Salary: \$${computeSalary().toStringAsFixed(2)}''';
 
     return '''

@@ -41,6 +41,7 @@ class Doctor extends MedicalStaff {
 
   @override
   double get getExperienceBonus => getYearsOfExperience * 300;
+  bool get hasValidConsultations => consultationsThisMonth >= 0;
 
   @override
   String getSpecializationName() {
@@ -52,5 +53,6 @@ class Doctor extends MedicalStaff {
     return '''
 ${super.toString()}
 Consultations This Month: $consultationsThisMonth''';
+
   }
 }

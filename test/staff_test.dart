@@ -1,18 +1,22 @@
 import 'dart:io';
 import 'package:test/test.dart';
 import '../lib/domain/administrative_staff.dart';
+import '../lib/domain/doctor.dart';
+import '../lib/domain/nurse.dart';
 import '../lib/domain/staff.dart';
 import '../lib/service/staff_service.dart';
+import '../lib/service/medical_staff_service.dart';
 
 void main() {
   group('Hospital Staff Management System Tests', () {
     late StaffService staffService;
+    late MedicalStaffService medicalStaffService;
     final adminBackupPath = 'lib/data/storage/admin_staff_data_backup.json';
     final doctorsBackupPath = 'lib/data/storage/doctors_data_backup.json';
     final nursesBackupPath = 'lib/data/storage/nurses_data_backup.json';
 
     setUpAll(() {
-      // Backup original data files before all tests
+
       final adminFile = File('lib/data/storage/admin_staff_data.json');
       final doctorsFile = File('lib/data/storage/doctors_data.json');
       final nursesFile = File('lib/data/storage/nurses_data.json');
@@ -24,10 +28,11 @@ void main() {
 
     setUp(() {
       staffService = StaffService();
+      medicalStaffService = MedicalStaffService(staffService);
     });
 
     tearDownAll(() {
-      // Restore original data files after all tests
+
       final adminBackup = File(adminBackupPath);
       final doctorsBackup = File(doctorsBackupPath);
       final nursesBackup = File(nursesBackupPath);
@@ -48,26 +53,20 @@ void main() {
       print('\n✅ Test data reset to original state');
     });
 
-    // Test 1: Get Staff by ID
     test('1. Get Staff by ID - Retrieve specific staff member', () {
-      // Arrange
       final allStaff = staffService.allStaff;
       expect(allStaff.isNotEmpty, true);
       final targetStaff = allStaff.first;
 
-      // Act
       final retrievedStaff = staffService.getStaffById(targetStaff.id);
 
-      // Assert
       expect(retrievedStaff, isNotNull);
       expect(retrievedStaff?.id, targetStaff.id);
       expect(retrievedStaff?.firstName, targetStaff.firstName);
       expect(retrievedStaff?.email, targetStaff.email);
     });
 
-    // Test 2: Add New Staff
     test('2. Add Staff - Create and add new administrative staff', () {
-      // Arrange
       final newAdmin = AdministrativeStaff(
         id: 'TEST_ADMIN_001',
         firstName: 'Test',
@@ -85,22 +84,17 @@ void main() {
       final initialCount =
           staffService.allStaff.whereType<AdministrativeStaff>().length;
 
-      // Act
       staffService.addStaff(newAdmin);
 
-      // Assert
       final afterCount =
           staffService.allStaff.whereType<AdministrativeStaff>().length;
       expect(afterCount, initialCount + 1);
       expect(staffService.getStaffById('TEST_ADMIN_001'), isNotNull);
 
-      // Cleanup
       staffService.removeStaff('TEST_ADMIN_001');
     });
 
-    // Test 3: Update Staff
     test('3. Update Staff - Modify existing staff salary', () {
-      // Arrange
       final admins =
           staffService.allStaff.whereType<AdministrativeStaff>().toList();
       expect(admins.isNotEmpty, true);
@@ -108,22 +102,17 @@ void main() {
       final originalSalary = testAdmin.salary;
       final newSalary = originalSalary + 5000.0;
 
-      // Act
       testAdmin.salary = newSalary;
       staffService.updateStaff(testAdmin);
 
-      // Assert
       final updatedAdmin = staffService.getStaffById(testAdmin.id);
       expect(updatedAdmin?.salary, newSalary);
 
-      // Cleanup
       testAdmin.salary = originalSalary;
       staffService.updateStaff(testAdmin);
     });
 
-    // Test 4: Remove Staff
     test('4. Remove Staff - Delete staff member from system', () {
-      // Arrange
       final newStaff = AdministrativeStaff(
         id: 'TEMP_001',
         firstName: 'Temp',
@@ -141,50 +130,38 @@ void main() {
       staffService.addStaff(newStaff);
       final beforeCount = staffService.allStaff.length;
 
-      // Act
       staffService.removeStaff('TEMP_001');
 
-      // Assert
       final afterCount = staffService.allStaff.length;
       expect(afterCount, beforeCount - 1);
       expect(staffService.getStaffById('TEMP_001'), isNull);
     });
 
-    // Test 5: Search by Name
     test('5. Search Staff - Find staff by partial name match', () {
-      // Arrange
       final allStaff = staffService.allStaff;
       expect(allStaff.isNotEmpty, true);
       final targetStaff = allStaff.first;
       final searchQuery = targetStaff.firstName.substring(0, 3);
 
-      // Act
       final results = staffService.searchStaffByName(searchQuery);
 
-      // Assert
       expect(results, isNotEmpty);
       expect(results.any((s) => s.id == targetStaff.id), true);
     });
 
-    // Test 6: Get By Department
     test('6. Get By Department - Retrieve all staff in specific department',
         () {
-      // Arrange
       final targetDept = StaffDepartment.HUMAN_RESOURCES;
 
-      // Act
       final deptStaff = staffService.getByDepartment<Staff>(targetDept);
 
-      // Assert
       expect(deptStaff, isNotNull);
       for (var staff in deptStaff) {
         expect(staff.department, targetDept);
       }
     });
 
-    // Test 7: Transfer Department
     test('7. Transfer Department - Move staff to different department', () {
-      // Arrange
       final staff = staffService.allStaff.first;
       final originalDept = staff.department;
       final newDept = StaffDepartment.values.firstWhere(
@@ -192,49 +169,38 @@ void main() {
         orElse: () => StaffDepartment.EMERGENCY_DEPARTMENT,
       );
 
-      // Act
       staffService.transferDepartment(staff.id, newDept);
 
-      // Assert
       final updated = staffService.getStaffById(staff.id);
       expect(updated?.department, newDept);
 
-      // Cleanup
       staffService.transferDepartment(staff.id, originalDept);
     });
 
-    // Test 8: Apply Department Salary Increase
     test('8. Salary Increase - Apply percentage raise to department', () {
-      // Arrange
       final dept = StaffDepartment.RECEPTION;
       final deptStaff = staffService.getByDepartment<Staff>(dept);
       final originalSalaries = {for (var s in deptStaff) s.id: s.salary};
       final increasePercent = 5.0;
 
-      // Act
       staffService.applyDepartmentSalaryIncrease(dept, increasePercent);
 
-      // Assert
       for (var staff in deptStaff) {
         final expected =
             originalSalaries[staff.id]! * (1 + increasePercent / 100);
         expect(staff.salary, closeTo(expected, 0.01));
       }
 
-      // Cleanup
       for (var staff in deptStaff) {
         staff.salary = originalSalaries[staff.id]!;
         staffService.updateStaff(staff);
       }
     });
 
-    // Test 9: Get Department Statistics
     test('9. Department Statistics - Calculate metrics for all departments',
         () {
-      // Act
       final stats = staffService.getDepartmentStatistics();
 
-      // Assert
       expect(stats, isNotEmpty);
       expect(stats['totalDepartments'], greaterThan(0));
       expect(stats.containsKey('details'), true);
@@ -250,12 +216,9 @@ void main() {
       }
     });
 
-    // Test 10: Get Staff Count By Type
     test('10. Staff Count - Count staff members by type', () {
-      // Act
       final counts = staffService.getStaffCountByType();
 
-      // Assert
       expect(counts, isNotEmpty);
       expect(counts.containsKey('doctors'), true);
       expect(counts.containsKey('nurses'), true);
@@ -266,6 +229,330 @@ void main() {
       expect(counts['doctors'], greaterThanOrEqualTo(0));
       expect(counts['nurses'], greaterThanOrEqualTo(0));
       expect(counts['administrativeStaff'], greaterThanOrEqualTo(0));
+    });
+
+    test('11. Email Validation - Reject invalid email formats', () {
+      final invalidEmails = [
+        'nodomain',
+        'test@',
+        '@test.com',
+        'test@testcom',
+        '',
+      ];
+
+      for (var invalidEmail in invalidEmails) {
+        final testAdmin = AdministrativeStaff(
+          id: 'TEST_EMAIL_${invalidEmails.indexOf(invalidEmail)}',
+          firstName: 'Test',
+          lastName: 'Email',
+          email: invalidEmail,
+          phoneNumber: '5551234567',
+          dateOfBirth: DateTime(1990, 1, 1),
+          hireDate: DateTime.now(),
+          pastYearsOfExperience: 5,
+          salary: 50000.0,
+          department: StaffDepartment.ADMINISTRATION,
+          position: AdministrativePosition.HR,
+        );
+
+        expect(testAdmin.hasValidEmail, false,
+            reason: 'Email "$invalidEmail" should be invalid');
+      }
+    });
+
+    test('12. Age Boundary - Test isAdult with exact 18-year boundary', () {
+      final now = DateTime.now();
+
+      final eighteenYearsAgo = DateTime(now.year - 18, now.month, now.day);
+      final seventeenYearsAgo = DateTime(now.year - 17, now.month, now.day);
+
+      final adultStaff = AdministrativeStaff(
+        id: 'ADULT_TEST',
+        firstName: 'Adult',
+        lastName: 'Staff',
+        email: 'adult@hospital.com',
+        phoneNumber: '5551234567',
+        dateOfBirth: eighteenYearsAgo,
+        hireDate: DateTime.now(),
+        pastYearsOfExperience: 0,
+        salary: 40000.0,
+        department: StaffDepartment.ADMINISTRATION,
+        position: AdministrativePosition.RECEPTIONIST,
+      );
+
+      final childStaff = AdministrativeStaff(
+        id: 'CHILD_TEST',
+        firstName: 'Young',
+        lastName: 'Staff',
+        email: 'young@hospital.com',
+        phoneNumber: '5551234567',
+        dateOfBirth: seventeenYearsAgo,
+        hireDate: DateTime.now(),
+        pastYearsOfExperience: 0,
+        salary: 40000.0,
+        department: StaffDepartment.ADMINISTRATION,
+        position: AdministrativePosition.RECEPTIONIST,
+      );
+
+      expect(adultStaff.isAdult, true, reason: 'Should be 18+');
+      expect(childStaff.isAdult, false, reason: 'Should be under 18');
+    });
+
+    test('13. Overload Detection - Identify overloaded medical staff', () {
+      final doctor = Doctor(
+        id: 'DOC_OVERLOAD',
+        firstName: 'Busy',
+        lastName: 'Doctor',
+        email: 'busy@hospital.com',
+        phoneNumber: '5551234567',
+        dateOfBirth: DateTime(1985, 1, 1),
+        hireDate: DateTime(2020, 1, 1),
+        pastYearsOfExperience: 5,
+        salary: 120000.0,
+        specialization: DoctorSpecialization.CARDIOLOGY,
+        department: StaffDepartment.CARDIOLOGY,
+        currentShift: ShiftType.DAY,
+      );
+
+      for (int i = 0; i < 11; i++) {
+        doctor.assignedPatients.add('patient_$i');
+      }
+      expect(doctor.isOverloaded, true, reason: 'Should be overloaded at 11 patients');
+
+      doctor.assignedPatients.clear();
+      doctor.shiftsThisMonth = 21;
+      expect(doctor.isOverloaded, true, reason: 'Should be overloaded at 21 shifts');
+
+      doctor.assignedPatients.clear();
+      for (int i = 0; i < 9; i++) {
+        doctor.assignedPatients.add('patient_$i');
+      }
+      doctor.shiftsThisMonth = 5;
+      expect(doctor.isOverloaded, false, reason: 'Should not be overloaded');
+    });
+
+    test('14. Capacity Check - Test canTakeMorePatients at boundaries', () {
+      final nurse = Nurse(
+        id: 'NURSE_CAPACITY',
+        firstName: 'Capacity',
+        lastName: 'Test',
+        email: 'capacity@hospital.com',
+        phoneNumber: '5551234567',
+        dateOfBirth: DateTime(1990, 1, 1),
+        hireDate: DateTime(2020, 1, 1),
+        pastYearsOfExperience: 3,
+        salary: 80000.0,
+        specialization: NurseSpecialization.GENERAL_NURSING,
+        department: StaffDepartment.INTENSIVE_CARE_UNIT,
+        currentShift: ShiftType.DAY,
+      );
+
+      for (int i = 0; i < 9; i++) {
+        nurse.assignedPatients.add('patient_$i');
+      }
+      expect(nurse.canTakeMorePatients, true, reason: 'Should accept at 9 patients');
+
+      nurse.assignedPatients.add('patient_9');
+      expect(nurse.canTakeMorePatients, false, reason: 'Should reject at 10 patients');
+    });
+
+    test('15. Shift Validation - Test hasValidShiftsCount at boundaries', () {
+      final doctor = Doctor(
+        id: 'DOC_SHIFTS',
+        firstName: 'Shift',
+        lastName: 'Test',
+        email: 'shift@hospital.com',
+        phoneNumber: '5551234567',
+        dateOfBirth: DateTime(1985, 1, 1),
+        hireDate: DateTime(2020, 1, 1),
+        pastYearsOfExperience: 5,
+        salary: 120000.0,
+        specialization: DoctorSpecialization.SURGERY,
+        department: StaffDepartment.SURGERY,
+        currentShift: ShiftType.DAY,
+      );
+
+      doctor.shiftsThisMonth = 0;
+      expect(doctor.hasValidShiftsCount, true, reason: 'Should accept 0 shifts');
+
+      doctor.shiftsThisMonth = 31;
+      expect(doctor.hasValidShiftsCount, true, reason: 'Should accept 31 shifts');
+
+      doctor.shiftsThisMonth = 32;
+      expect(doctor.hasValidShiftsCount, false, reason: 'Should reject 32 shifts');
+
+      doctor.shiftsThisMonth = -1;
+      expect(doctor.hasValidShiftsCount, false, reason: 'Should reject -1 shifts');
+    });
+
+    test('16. Multiple Validations - Catch all validation failures at once', () {
+      final now = DateTime.now();
+      final invalidStaff = AdministrativeStaff(
+        id: 'INVALID_MULTI',
+        firstName: 'Multi',
+        lastName: 'Invalid',
+        email: 'invalidemail',
+        phoneNumber: '123',
+        dateOfBirth: now.add(Duration(days: 1)),
+        hireDate: now.subtract(Duration(days: 365)),
+        pastYearsOfExperience: -5,
+        salary: 50000.0,
+        department: StaffDepartment.ADMINISTRATION,
+        position: AdministrativePosition.HR,
+      );
+
+      expect(() => staffService.addStaff(invalidStaff), throwsArgumentError);
+    });
+
+    test('17. Patient Capacity - Reject assignment when at capacity', () {
+      final nurse = Nurse(
+        id: 'NURSE_FULL',
+        firstName: 'Full',
+        lastName: 'Nurse',
+        email: 'full@hospital.com',
+        phoneNumber: '5551234567',
+        dateOfBirth: DateTime(1990, 1, 1),
+        hireDate: DateTime(2020, 1, 1),
+        pastYearsOfExperience: 3,
+        salary: 80000.0,
+        specialization: NurseSpecialization.SURGICAL,
+        department: StaffDepartment.SURGERY,
+        currentShift: ShiftType.DAY,
+      );
+
+      for (int i = 0; i < 10; i++) {
+        nurse.assignedPatients.add('patient_$i');
+      }
+
+      staffService.addStaff(nurse);
+
+      expect(
+        () => medicalStaffService.assignPatient('NURSE_FULL', 'patient_10'),
+        throwsStateError,
+      );
+
+      final updatedNurse = staffService.getStaffById('NURSE_FULL') as Nurse;
+      expect(updatedNurse.assignedPatients.length, 10, reason: 'Should still have 10 patients');
+
+      staffService.removeStaff('NURSE_FULL');
+    });
+
+    test('18. Shift Rollback - Verify rollback when exceeding limit', () {
+      final doctor = Doctor(
+        id: 'DOC_31SHIFTS',
+        firstName: 'Thirty',
+        lastName: 'One',
+        email: 'thirty@hospital.com',
+        phoneNumber: '5551234567',
+        dateOfBirth: DateTime(1985, 1, 1),
+        hireDate: DateTime(2020, 1, 1),
+        pastYearsOfExperience: 5,
+        salary: 120000.0,
+        specialization: DoctorSpecialization.NEUROLOGY,
+        department: StaffDepartment.NEUROLOGY,
+        currentShift: ShiftType.DAY,
+        shiftsThisMonth: 31,
+      );
+
+      staffService.addStaff(doctor);
+
+      expect(
+        () => medicalStaffService.recordShift('DOC_31SHIFTS'),
+        throwsStateError,
+      );
+
+      final updatedDoctor = staffService.getStaffById('DOC_31SHIFTS') as Doctor;
+      expect(updatedDoctor.shiftsThisMonth, 31, reason: 'Should rollback to 31');
+
+      staffService.removeStaff('DOC_31SHIFTS');
+    });
+
+    test('19. Transfer Atomic - Verify patient stays with source on failure', () {
+      final sourceNurse = Nurse(
+        id: 'NURSE_SOURCE',
+        firstName: 'Source',
+        lastName: 'Nurse',
+        email: 'source@hospital.com',
+        phoneNumber: '5551234567',
+        dateOfBirth: DateTime(1990, 1, 1),
+        hireDate: DateTime(2020, 1, 1),
+        pastYearsOfExperience: 3,
+        salary: 80000.0,
+        specialization: NurseSpecialization.EMERGENCY,
+        department: StaffDepartment.EMERGENCY_DEPARTMENT,
+        currentShift: ShiftType.DAY,
+      );
+      sourceNurse.assignedPatients.add('patient_transfer');
+
+      final fullNurse = Nurse(
+        id: 'NURSE_FULL_TRANSFER',
+        firstName: 'Full',
+        lastName: 'Transfer',
+        email: 'fullt@hospital.com',
+        phoneNumber: '5551234567',
+        dateOfBirth: DateTime(1990, 1, 1),
+        hireDate: DateTime(2020, 1, 1),
+        pastYearsOfExperience: 3,
+        salary: 80000.0,
+        specialization: NurseSpecialization.PEDIATRIC,
+        department: StaffDepartment.PEDIATRICS,
+        currentShift: ShiftType.DAY,
+      );
+
+      for (int i = 0; i < 10; i++) {
+        fullNurse.assignedPatients.add('dest_patient_$i');
+      }
+
+      staffService.addStaff(sourceNurse);
+      staffService.addStaff(fullNurse);
+
+      expect(
+        () => medicalStaffService.transferPatient(
+            'NURSE_SOURCE', 'NURSE_FULL_TRANSFER', 'patient_transfer'),
+        throwsStateError,
+      );
+
+      final updatedSource =
+          staffService.getStaffById('NURSE_SOURCE') as Nurse;
+      expect(
+        updatedSource.assignedPatients.contains('patient_transfer'),
+        true,
+        reason: 'Patient should still be with source nurse',
+      );
+
+      staffService.removeStaff('NURSE_SOURCE');
+      staffService.removeStaff('NURSE_FULL_TRANSFER');
+    });
+
+    test('20. Salary Validation - Ensure validation prevents invalid increases',
+        () {
+      final admin = AdministrativeStaff(
+        id: 'ADMIN_SALARY_TEST',
+        firstName: 'Salary',
+        lastName: 'Test',
+        email: 'salary.test@hospital.com',
+        phoneNumber: '5551234567',
+        dateOfBirth: DateTime(1990, 1, 1),
+        hireDate: DateTime(2020, 1, 1),
+        pastYearsOfExperience: 5,
+        salary: 50000.0,
+        department: StaffDepartment.HUMAN_RESOURCES,
+        position: AdministrativePosition.HR,
+      );
+
+      staffService.addStaff(admin);
+      final originalSalary = admin.salary;
+
+      expect(
+        () => staffService.applyDepartmentSalaryIncrease(
+            StaffDepartment.HUMAN_RESOURCES, -10.0),
+        throwsArgumentError,
+      );
+
+      final unchanged = staffService.getStaffById('ADMIN_SALARY_TEST')!;
+      expect(unchanged.salary, originalSalary, reason: 'Salary should not change on error');
+
+      staffService.removeStaff('ADMIN_SALARY_TEST');
     });
   });
 }

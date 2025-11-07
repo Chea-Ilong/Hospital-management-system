@@ -9,7 +9,6 @@ class NurseRepository {
   NurseRepository([String? customPath])
       : filePath = customPath ?? 'lib/data/storage/nurses_data.json';
 
-  /// Load all nurses from JSON file
   List<Nurse> loadAllNurses() {
     try {
       final file = File(filePath);
@@ -31,7 +30,6 @@ class NurseRepository {
     }
   }
 
-  /// Save all nurses to JSON file
   void saveAllNurses(List<Nurse> nurses) {
     try {
       final file = File(filePath);
@@ -52,7 +50,6 @@ class NurseRepository {
     }
   }
 
-  /// Convert Nurse to JSON
   Map<String, dynamic> _nurseToJson(Nurse nurse) {
     return {
       'id': nurse.id,
@@ -73,7 +70,6 @@ class NurseRepository {
     };
   }
 
-  /// Convert JSON to Nurse
   Nurse _nurseFromJson(Map<String, dynamic> json) {
     return Nurse(
       id: json['id'],

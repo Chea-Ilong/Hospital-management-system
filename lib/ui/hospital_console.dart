@@ -30,7 +30,6 @@ class HospitalConsole {
     }
   }
 
-  // ===== MENUS =====
 
   void _showMainMenu() {
     print('\n${'=' * 50}\nMAIN MENU\n${'=' * 50}');
@@ -117,8 +116,7 @@ class HospitalConsole {
       '5.Record Consultation',
       '6.Add Cert',
       '7.Remove Cert',
-      '8.Performance Report',
-      '9.Reset Counters',
+      '8.Reset Counters',
       '0.Back'
     ]);
     final choice = _input('➤: ');
@@ -158,9 +156,6 @@ class HospitalConsole {
           print('✅ Removed');
           break;
         case '8':
-          _showPerformanceReport();
-          break;
-        case '9':
           if (_confirm('Reset all counters?')) {
             medicalStaffService.resetAllMonthlyCounters();
             print('✅ Reset');
@@ -189,7 +184,6 @@ class HospitalConsole {
     }
   }
 
-  // ===== OPERATIONS =====
 
   void _searchStaff() {
     final query = _input('🔍 Name: ');
@@ -348,7 +342,6 @@ class HospitalConsole {
     _displayList(staffService.getByDepartment<Staff>(dept), dept.name);
   }
 
-  // ===== REPORTS =====
 
   void _showPerformanceReport() {
     final r = medicalStaffService.getPerformanceReport();
@@ -369,14 +362,22 @@ class HospitalConsole {
   void _showDeptStats() {
     final stats = staffService.getDepartmentStatistics();
     print('\n${'=' * 50}\nDEPARTMENT STATISTICS\n${'=' * 50}');
-    stats.forEach((dept, data) {
-      final d = data as Map<String, dynamic>;
-      print(
-          '$dept: ${d['totalStaff']} staff, Avg Salary: \$${d['avgSalary'].toStringAsFixed(2)}');
-    });
-  }
+    print('Total Departments with Staff: ${stats['totalDepartments']}\n');
 
-  // ===== HELPERS =====
+    final details = stats['details'] as List;
+    for (var deptData in details) {
+      final d = deptData as Map<String, dynamic>;
+      if (d['totalStaff'] > 0) {
+        print('${d['department']}:');
+        print(
+            '  Total Staff: ${d['totalStaff']} (Doctors: ${d['doctors']}, Nurses: ${d['nurses']}, Admin: ${d['adminStaff']})');
+        print('  Avg Salary: \$${d['avgSalary'].toStringAsFixed(2)}');
+        print(
+            '  Total Salary Expense: \$${d['totalSalaryExpense'].toStringAsFixed(2)}');
+        print('');
+      }
+    }
+  }
 
   void _printHeader(String title) =>
       print('\n${'=' * 50}\n$title\n${'=' * 50}');

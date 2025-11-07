@@ -9,7 +9,6 @@ class AdministrativeStaffRepository {
   AdministrativeStaffRepository([String? customPath])
       : filePath = customPath ?? 'lib/data/storage/admin_staff_data.json';
 
-  /// Load all administrative staff from JSON file
   List<AdministrativeStaff> loadAllAdministrativeStaff() {
     try {
       final file = File(filePath);
@@ -32,7 +31,6 @@ class AdministrativeStaffRepository {
     }
   }
 
-  /// Save all administrative staff to JSON file
   void saveAllAdministrativeStaff(List<AdministrativeStaff> adminStaff) {
     try {
       final file = File(filePath);
@@ -55,7 +53,6 @@ class AdministrativeStaffRepository {
     }
   }
 
-  /// Convert AdministrativeStaff to JSON
   Map<String, dynamic> _administrativeStaffToJson(AdministrativeStaff admin) {
     return {
       'id': admin.id,
@@ -73,7 +70,6 @@ class AdministrativeStaffRepository {
     };
   }
 
-  /// Convert JSON to AdministrativeStaff
   AdministrativeStaff _administrativeStaffFromJson(Map<String, dynamic> json) {
     return AdministrativeStaff(
       id: json['id'],
