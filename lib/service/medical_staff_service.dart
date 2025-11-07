@@ -32,10 +32,9 @@ class MedicalStaffService {
 
     if (!medicalStaff.canTakeMorePatients) {
       throw StateError(
-        'Cannot assign patient to ${medicalStaff.getFullName} (ID: $staffId): '
-        'Staff is at capacity with ${medicalStaff.assignedPatients.length} patients. '
-        'Maximum allowed is 10 patients.'
-      );
+          'Cannot assign patient to ${medicalStaff.getFullName} (ID: $staffId): '
+          'Staff is at capacity with ${medicalStaff.assignedPatients.length} patients. '
+          'Maximum allowed is 10 patients.');
     }
 
     if (medicalStaff.isOverloaded) {
@@ -60,19 +59,19 @@ class MedicalStaffService {
   void transferPatient(String fromStaffId, String toStaffId, String patientId) {
     final fromStaff = _getMedicalStaffById(fromStaffId);
     if (fromStaff == null) {
-      throw ArgumentError('Source medical staff with ID $fromStaffId not found');
+      throw ArgumentError(
+          'Source medical staff with ID $fromStaffId not found');
     }
 
     final toStaff = _getMedicalStaffById(toStaffId);
     if (toStaff == null) {
-      throw ArgumentError('Destination medical staff with ID $toStaffId not found');
+      throw ArgumentError(
+          'Destination medical staff with ID $toStaffId not found');
     }
 
     if (!toStaff.canTakeMorePatients && !toStaff.hasPatient(patientId)) {
-      throw StateError(
-        'Cannot transfer patient to ${toStaff.getFullName}: '
-        'Staff is at capacity with ${toStaff.assignedPatients.length} patients'
-      );
+      throw StateError('Cannot transfer patient to ${toStaff.getFullName}: '
+          'Staff is at capacity with ${toStaff.assignedPatients.length} patients');
     }
 
     removePatient(fromStaffId, patientId);
@@ -89,11 +88,9 @@ class MedicalStaffService {
 
     if (!medicalStaff.hasValidShiftsCount) {
       medicalStaff.shiftsThisMonth--;
-      throw StateError(
-        'Cannot record shift for ${medicalStaff.getFullName}: '
-        'Shift count would exceed maximum (current: ${medicalStaff.shiftsThisMonth}, '
-        'maximum: 31 shifts per month)'
-      );
+      throw StateError('Cannot record shift for ${medicalStaff.getFullName}: '
+          'Shift count would exceed maximum (current: ${medicalStaff.shiftsThisMonth}, '
+          'maximum: 31 shifts per month)');
     }
 
     if (medicalStaff.isOverloaded) {
@@ -114,10 +111,8 @@ class MedicalStaffService {
 
     if (!doctor.hasValidConsultations) {
       doctor.consultationsThisMonth--;
-      throw StateError(
-        'Cannot record consultation for ${doctor.getFullName}: '
-        'Invalid consultation count'
-      );
+      throw StateError('Cannot record consultation for ${doctor.getFullName}: '
+          'Invalid consultation count');
     }
 
     _staffService.updateStaff(doctor);
@@ -172,8 +167,7 @@ class MedicalStaffService {
                 nurses.length,
       },
       'workload': {
-        'overloadedStaff':
-            medicalStaff.where((s) => s.isOverloaded).length,
+        'overloadedStaff': medicalStaff.where((s) => s.isOverloaded).length,
         'underutilizedStaff':
             medicalStaff.where((s) => s.assignedPatients.isEmpty).length,
         'overloaded': medicalStaff
@@ -206,7 +200,7 @@ class MedicalStaffService {
   Doctor? _getDoctorById(String id) {
     final staff = _staffService.getStaffById(id);
     return (staff is Doctor) ? staff : null;
-  } 
+  }
 
   Map<String, dynamic> _formatStaffWorkload(MedicalStaff staff) {
     final info = {

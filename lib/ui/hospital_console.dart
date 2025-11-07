@@ -30,7 +30,6 @@ class HospitalConsole {
     }
   }
 
-
   void _showMainMenu() {
     print('\n${'=' * 50}\nMAIN MENU\n${'=' * 50}');
     _printOptions([
@@ -183,7 +182,6 @@ class HospitalConsole {
         break;
     }
   }
-
 
   void _searchStaff() {
     final query = _input('🔍 Name: ');
@@ -341,7 +339,6 @@ class HospitalConsole {
     final dept = _selectEnum(StaffDepartment.values, 'Department');
     _displayList(staffService.getByDepartment<Staff>(dept), dept.name);
   }
-
 
   void _showPerformanceReport() {
     final r = medicalStaffService.getPerformanceReport();

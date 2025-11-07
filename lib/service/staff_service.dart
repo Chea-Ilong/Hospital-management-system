@@ -105,16 +105,14 @@ class StaffService {
       if (!staff.hasValidSalary) {
         staff.salary = oldSalary;
         throw StateError(
-          'Salary increase resulted in invalid salary for ${staff.getFullName} '
-          '(ID: ${staff.id}). Old: \$${oldSalary.toStringAsFixed(2)}, '
-          'New: \$${staff.salary.toStringAsFixed(2)}'
-        );
+            'Salary increase resulted in invalid salary for ${staff.getFullName} '
+            '(ID: ${staff.id}). Old: \$${oldSalary.toStringAsFixed(2)}, '
+            'New: \$${staff.salary.toStringAsFixed(2)}');
       }
 
       updateStaff(staff);
     }
   }
-
 
   Map<String, dynamic> getDepartmentStatistics() {
     final breakdown = _getDepartmentBreakdown();
@@ -149,7 +147,6 @@ class StaffService {
     };
   }
 
-
   List<T> _getWhere<T extends Staff>(bool Function(T) predicate) {
     return _allStaff.whereType<T>().where(predicate).toList();
   }
@@ -167,7 +164,8 @@ class StaffService {
       errors.add('Date of birth must be in the past');
     }
     if (!staff.isAdult) {
-      errors.add('Staff must be at least 18 years old (current age: ${staff.getAge})');
+      errors.add(
+          'Staff must be at least 18 years old (current age: ${staff.getAge})');
     }
     if (!staff.hasValidHireDate) {
       errors.add('Hire date cannot be in the future');
@@ -181,7 +179,8 @@ class StaffService {
 
     if (staff is MedicalStaff) {
       if (!staff.hasValidShiftsCount) {
-        errors.add('Invalid shifts count: ${staff.shiftsThisMonth} (must be 0-31)');
+        errors.add(
+            'Invalid shifts count: ${staff.shiftsThisMonth} (must be 0-31)');
       }
 
       if (staff is Doctor && !staff.hasValidConsultations) {
@@ -190,7 +189,8 @@ class StaffService {
     }
 
     if (errors.isNotEmpty) {
-      throw ArgumentError('Staff validation failed:\n  - ${errors.join('\n  - ')}');
+      throw ArgumentError(
+          'Staff validation failed:\n  - ${errors.join('\n  - ')}');
     }
   }
 
