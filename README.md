@@ -5,7 +5,7 @@ A small hospital management system implemented in Dart. This repository contains
 
 ## Use Case
 
-![Use Case Diagram](./UseCase.jpeg)
+![Use Case Diagram](./UseCase.jpg)
 
 ## UML Diagram
 

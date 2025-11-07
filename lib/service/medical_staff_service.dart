@@ -168,14 +168,8 @@ class MedicalStaffService {
       },
       'workload': {
         'overloadedStaff': medicalStaff.where((s) => s.isOverloaded).length,
-        'underutilizedStaff':
-            medicalStaff.where((s) => s.assignedPatients.isEmpty).length,
         'overloaded': medicalStaff
             .where((s) => s.isOverloaded)
-            .map((s) => _formatStaffWorkload(s))
-            .toList(),
-        'underutilized': medicalStaff
-            .where((s) => s.assignedPatients.isEmpty && s.shiftsThisMonth < 5)
             .map((s) => _formatStaffWorkload(s))
             .toList(),
       },

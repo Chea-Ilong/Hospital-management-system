@@ -353,7 +353,6 @@ class HospitalConsole {
     print('Avg Nurse Shifts: ${p['avgNurseShifts'].toStringAsFixed(1)}');
     final w = r['workload'];
     print('\nOverloaded (>10 patients): ${w['overloadedStaff']}');
-    print('Underutilized (0 patients): ${w['underutilizedStaff']}');
   }
 
   void _showDeptStats() {
